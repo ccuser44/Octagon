@@ -502,7 +502,7 @@ end
 function Server._initSafeChecksForPlayerProfile(playerProfile)
 	local player = playerProfile.Player
 	local primaryPart = player.Character.PrimaryPart
-	local humanoid = player.Character.Humanoid
+	local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
 
 	if Server._arePhysicsDetectionsInit then
 		playerProfile.Maid:AddTask(
