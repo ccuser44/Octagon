@@ -227,15 +227,15 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 		)
 	)
 
-	local canSetNetworkOwnership, errorMessage = basePart:CanSetNetworkOwnership()
+	local canSetNetworkOwnership, response = basePart:CanSetNetworkOwnership()
 
 	if canSetNetworkOwnership then
 		basePart:SetNetworkOwner(networkOwner)
 	else
 		warn(
-			("[Util.SetBasePartNetworkOwner()]: Cannot set network owner of base part [%s]. Error: %s"):format(
+			("[Util.SetBasePartNetworkOwner()]: Cannot set network owner of %s. Error: %s"):format(
 				basePart.Name,
-				errorMessage
+				response
 			)
 		)
 	end
@@ -368,8 +368,9 @@ function Util._getPlayerRankInGroup(player, groupId)
 
 	if not wasSuccessFull then
 		warn(
-			("[Util._getPlayerRankInGroup()]: Failed to get %s's group rank. Error: %s"):format(
+			("[Util._getPlayerRankInGroup()]: Failed to get %s's group rank in group of group id: %d. Error: %s"):format(
 				player.Name,
+				groupId,
 				response
 			)
 		)
