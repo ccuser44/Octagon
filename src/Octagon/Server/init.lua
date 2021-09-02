@@ -265,8 +265,8 @@ function Server.Start()
 					SharedConstants.Tags.PrimaryPart
 				)
 
-				Server._initPlayer(playerProfile)
-				Server._startNonPhysicsDetectionsForPlayer(playerProfile)
+				Server._initSafeChecksForPlayerProfile(playerProfile)
+				Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
 				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
 					playerProfile:SetDeinitTag()
 					playerProfile:Init(Server._detectionsInit.Physics)
@@ -291,6 +291,7 @@ function Server.Start()
 				)
 			else
 				playerProfile:Destroy()
+				Server._cleanupDetectionsForPlayer(player)
 			end
 
 			return nil
@@ -356,7 +357,7 @@ function Server._init()
 		Server._initSignals()
 		PlayerProfileService.Init()
 	end
-	
+
 	return nil
 end
 
@@ -399,11 +400,6 @@ function Server._initSignals()
 	end
 
 	return nil
-end
-
-function Server._isPlayerBlackListedFromBeingMonitored(player)
-	return Config.PlayersBlackListedFromBeingMonitored[player.UserId]
-		and not Server.IsPlayerGameOwner(player)
 end
 
 function Server._startHeartBeatUpdate()
@@ -504,7 +500,7 @@ function Server._heartBeatUpdate(dt, verticalSpeed, horizontalSpeed)
 	return nil
 end
 
-function Server._initPlayer(playerProfile)
+function Server._initSafeChecksForPlayerProfile(playerProfile)
 	local player = playerProfile.Player
 	local primaryPart = player.Character.PrimaryPart
 	local humanoid = player.Character.Humanoid
@@ -565,9 +561,29 @@ function Server._setPlayerPrimaryNetworkOwner(player)
 	return nil
 end
 
-function Server._startNonPhysicsDetectionsForPlayer(playerProfile)
+function Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
 	for _, module in pairs(Server._detectionsInit.NonPhysics) do
 		require(module).Start(playerProfile)
+	end
+
+	return nil
+end
+
+function Server._cleanupDetectionsForPlayer(player)
+	for _, module in pairs(Server._detectionsInit.NonPhysics) do
+		local requiredModule = require(module)
+
+		if requiredModule.CleanupForPlayer then
+			requiredModule.CleanupForPlayer(player)
+		end
+	end
+         
+	for _, module in pairs(Server._detectionsInit.Physics) do
+		local requiredModule = require(module)
+
+		if requiredModule.CleanupForPlayer then
+			requiredModule.CleanupForPlayer(player)
+		end
 	end
 
 	return nil
