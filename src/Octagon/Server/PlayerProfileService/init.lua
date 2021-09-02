@@ -17,7 +17,6 @@ local PlayerProfileService = {
 	LoadedPlayerProfiles = {},
 	_areModulesInit = false,
 	_isInit = false,
-	_destroyedPlayerProfiles = {},
 }
 
 local Octagon = script:FindFirstAncestor("Octagon")
@@ -74,8 +73,7 @@ function PlayerProfileService.GetPlayerProfile(player)
 	if playerProfile then
 		return playerProfile
 	elseif
-		not table.find(PlayerProfileService._destroyedPlayerProfiles, player.UserId)
-		and PlayerProfileService._isInit
+		PlayerProfileService._isInit
 		and Util.IsPlayerSubjectToBeMonitored(player)
 	then
 		return PlayerProfileService._waitForPlayerProfile(player)
@@ -116,7 +114,6 @@ function PlayerProfileService._initSignals()
 	end)
 
 	PlayerProfileService.OnPlayerProfileDestroyed:Connect(function(player)
-		table.insert(PlayerProfileService._destroyedPlayerProfiles, player.UserId)
 		PlayerProfileService.LoadedPlayerProfiles[player] = nil
 	end)
 
