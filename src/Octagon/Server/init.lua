@@ -43,7 +43,6 @@ local PlayerProfileService = require(script.PlayerProfileService)
 local PlayerProfile = require(PlayerProfileService.PlayerProfile)
 local Signal = require(script.Parent.Shared.Signal)
 local Maid = require(script.Parent.Shared.Maid)
-local Config = require(script.Config)
 local SharedConstants = require(script.Parent.Shared.SharedConstants)
 local DestroyAllMaids = require(script.Parent.Shared.DestroyAllMaids)
 local InitMaidFor = require(script.Parent.Shared.InitMaidFor)
@@ -69,13 +68,13 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 	assert(
 		typeof(value) == "number"
 			or typeof(value) == "RBXScriptSignal"
-			or Signal.IsSignal(value)
+			or typeof(value) == "table" and typeof(value.Wait) == "function"
 			or typeof(value) == "function",
 
 		SharedConstants.ErrorMessages.InvalidArgument:format(
 			2,
 			"Octagon.TemporarilyBlacklistPlayerFromBeingMonitored()",
-			"number or RBXScriptSignal or Signal or function",
+			"number or RBXScriptSignal or function or any table with a Wait() method",
 			typeof(value)
 		)
 	)
@@ -85,7 +84,7 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 	assert(
 		playerProfile,
 		(
-			"Cannot temporarily black list player [%s] as player isn't being monitored by Octagon"
+			"Cannot temporarily black list player [%s] as they aren't being monitored by Octagon"
 		):format(player.Name)
 	)
 
@@ -548,6 +547,8 @@ function Server._initSafeChecksForPlayerProfile(playerProfile)
 			end)
 		)
 	end
+
+	return nil
 end
 
 function Server._setPlayerPrimaryNetworkOwner(player)
