@@ -21,7 +21,10 @@ Returns a boolean indicating if `self` is a player profile.
 ### **`Only accessible from an object created by the PlayerProfile.new:`**
 
 !!!warning
-    Never cleanup any maids or signals, this is done by Octagon automatically whenever the profile associated to a player leaves. Doing so will cause a lot of errors and break a lot of functionality!
+    Never cleanup any maids or signals, this is done by Octagon automatically whenever the player associated to a player profile leaves the game, i.e the profile is destroyed.
+
+!!!note
+    All the signals and maids mentioned down below will be destroyed once the profile is destroyed. Along with the `Player` member, that will be `nil` once the profile has been destroyed in order to prevent a memory leak.
 
 ### `PlayerProfile.Player`
 
@@ -135,17 +138,17 @@ PlayerProfile:DecrementPhysicsThreshold(physicsThreshold : string, thresholdDecr
 
 Decrements the threshold for `physicsThreshold` by `thresholdDecrement`. 
 
-!!!warning
-    This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
-
 !!!note
-    If decrementing physics threshold values such that they are to be a value <= `0`, they will be clamped to `0`.
+    If decrementing physics threshold values such that they are to be a value <= `0`, they will be clamped back to `0`.
 
     ```lua
     print(PlayerProfile:GetPhysicsThresholdIncrement("VerticalSpeed")) --> 0
     PlayerProfile:DecrementPhysicsThreshold("VerticalSpeed", 500)
     print(PlayerProfile:GetPhysicsThresholdIncrement("VerticalSpeed")) --> 0
     ```
+
+!!!warning
+    This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
 
 ### `PlayerProfile:GetPhysicsThresholdIncrement()`
 

@@ -56,6 +56,7 @@ Octagon.IsStopped() --> boolean [IsStopped]
 Returns a boolean indicating if Octagon is stopped.
 
 ### `Octagon.BlacklistNoClipMonitoringPartsForPlayer()`
+
 ```lua
 Octagon.BlacklistNoClipMonitoringPartsForPlayer(player : Player, parts : table) --> nil []
 ```
@@ -64,6 +65,7 @@ Iterates through `parts` and adds a noclip black listed tag for `player` to each
 through those parts even if their property `CanCollide` isn't set to `false` on the server. This method is useful when you want to allow specific players to pass through collideable parts.
 
 ### `Octagon.UnBlacklistNoClipMonitoringPartsForPlayer()`
+
 ```lua
 Server.UnBlacklistNoClipMonitoringPartsForPlayer(player : Player, parts : table) --> nil []
 ```
@@ -75,7 +77,7 @@ Iterates through `parts` and removes the noclip black listed tag for `player` fr
 ```lua
 Octagon.TemporarilyBlacklistPlayerFromBeingMonitored(
     player : Player,
-    value : number | RBXScriptSignal | function
+    value : number | RBXScriptSignal | function | table 
 ) --> nil []
 ```
 
@@ -86,4 +88,7 @@ Temporarily black lists the player from being monitored by Octagon.
 | `player : Player` | The player to temporarily black list from being monitored |
 | `value : number`       | The number of seconds before the player will be monitored again by Octagon |
 | `value : function`       | The function to be called and done executed before the player will be monitored again by Octagon. |
-| `value : RBXScriptSignal | Signal`    | A signal (which contains a `Wait` method) or a RBXScriptSignal, whose `Wait` method will be called and done completing before the player will be monitored again by Octagon |
+| `value : RBXScriptSignal | table`    | A RBXScriptSignal or table (which contains a `Wait` method), whose `Wait` method will be called. Once the `Wait` method has finished yielding the thread,  the player will be monitored back again by Octagon |
+
+!!!warning
+    Do not try to attempt to blacklist a player who isn't being monitored as it is extremely redundant, a error will be thrown!
