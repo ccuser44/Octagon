@@ -8,6 +8,7 @@
 	MultiToolEquip.Init() --> nil []
     MultiToolEquip.Start(playerProfile : PlayerProfile) --> nil []
     MultiToolEquip.Cleanup() --> nil []
+	MultiToolEquip.CleanupForPlayer() --> nil []
 ]]
 
 local MultiToolEquip = {
@@ -79,6 +80,12 @@ end
 
 function MultiToolEquip.Cleanup()
 	DestroyAllMaids(MultiToolEquip)
+
+	return nil
+end
+
+function MultiToolEquip.CleanupForPlayer(player)
+	playerEquippedTools[player] = nil
 
 	return nil
 end
