@@ -49,8 +49,10 @@ local LocalConstants = {
 	MinPhysicsThresholdIncrement = 0,
 	MaxPhysicsThresholdIncrement = math.huge,
 
-	AlwaysAvailableMethods = {
-		"IsDestroyed",
+	Methods = {
+		AlwaysAvailable = {
+			"IsDestroyed",
+		},
 	},
 }
 
@@ -114,15 +116,10 @@ function PlayerProfile:Destroy()
 	setmetatable(self, {
 		__index = function(_, key)
 			if typeof(PlayerProfile[key]) == "function" then
-				local availableMethodIndex = table.find(
-					LocalConstants.AlwaysAvailableMethods,
-					key
-				)
-
 				assert(
-					availableMethodIndex,
+					table.find(LocalConstants.Methods.AlwaysAvailable, key) ~= nil,
 					("Can only call methods [%s] as profile is destroyed"):format(
-						table.concat(LocalConstants.AlwaysAvailableMethods)
+						table.concat(LocalConstants.Methods.AlwaysAvailable)
 					)
 				)
 
@@ -331,7 +328,7 @@ function PlayerProfile:_initPhysicsDetectionData(physicsDetections)
 			LastCFrame = nil,
 			RaycastParams = nil,
 		}
- 
+
 		if module == physicsDetections.NoClip then
 			-- Setup ray cast params for no clip detection:
 			local rayCastParams = RaycastParams.new()

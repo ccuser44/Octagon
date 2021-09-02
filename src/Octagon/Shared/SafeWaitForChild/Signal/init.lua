@@ -194,7 +194,7 @@ function Signal:DeferredFire(...)
 	-- time (next engine step):
 	local connection = self.ConnectionListHead
 
-	while connection do
+	while connection ~= nil do
 		if connection:IsConnected() then
 			if not Signal._freeRunnerThread then
 				Signal._freeRunnerThread = coroutine.create(
