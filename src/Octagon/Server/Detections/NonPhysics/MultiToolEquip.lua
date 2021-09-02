@@ -80,6 +80,7 @@ end
 
 function MultiToolEquip.Cleanup()
 	DestroyAllMaids(MultiToolEquip)
+	playerEquippedTools = {}
 
 	return nil
 end
