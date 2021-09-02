@@ -233,8 +233,7 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 		basePart:SetNetworkOwner(networkOwner)
 	else
 		warn(
-			("%s: Cannot set network owner of base part [%s] because %s"):format(
-				SharedConstants.FormattedOutputMessages.Util.Debug,
+			("[Util.SetBasePartNetworkOwner()]: Cannot set network owner of base part [%s]. Error: %s"):format(
 				basePart.Name,
 				errorMessage
 			)
@@ -369,8 +368,7 @@ function Util._getPlayerRankInGroup(player, groupId)
 
 	if not wasSuccessFull then
 		warn(
-			("%s: Failed to get %s's group rank. Error: %s"):format(
-				SharedConstants.FormattedOutputMessages.Octagon.Debug,
+			("[Util._getPlayerRankInGroup()]: Failed to get %s's group rank. Error: %s"):format(
 				player.Name,
 				response
 			)
