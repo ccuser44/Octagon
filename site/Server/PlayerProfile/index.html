@@ -792,7 +792,11 @@ Octagon and the developer to work with. </p>
 <h3 id="only-accessible-from-an-object-created-by-the-playerprofilenew"><strong><code>Only accessible from an object created by the PlayerProfile.new:</code></strong></h3>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Never cleanup any maids or signals, this is done by Octagon automatically whenever the profile associated to a player leaves. Doing so will cause a lot of errors and break a lot of functionality!</p>
+<p>Never cleanup any maids or signals, this is done by Octagon automatically whenever the player associated to a player profile leaves the game, i.e the profile is destroyed.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the signals and maids mentioned down below will be destroyed once the profile is destroyed. Along with the <code>Player</code> member, that will be <code>nil</code> once the profile has been destroyed in order to prevent a memory leak.</p>
 </div>
 <h3 id="playerprofileplayer"><code>PlayerProfile.Player</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">.</span><span class="n">Player</span> <span class="p">:</span> <span class="n">Player</span>
@@ -857,17 +861,17 @@ Octagon and the developer to work with. </p>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">DecrementPhysicsThreshold</span><span class="p">(</span><span class="n">physicsThreshold</span> <span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">thresholdDecrement</span> <span class="p">:</span> <span class="n">number</span><span class="p">)</span> <span class="c1">--&gt; nil []</span>
 </code></pre></div>
 <p>Decrements the threshold for <code>physicsThreshold</code> by <code>thresholdDecrement</code>. </p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>This method will throw an error if the detection it self for <code>physicsThreshold</code> doesn't exist or isn't enabled.</p>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If decrementing physics threshold values such that they are to be a value &lt;= <code>0</code>, they will be clamped to <code>0</code>.</p>
+<p>If decrementing physics threshold values such that they are to be a value &lt;= <code>0</code>, they will be clamped back to <code>0</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="s2">&quot;VerticalSpeed&quot;</span><span class="p">))</span> <span class="c1">--&gt; 0</span>
 <span class="n">PlayerProfile</span><span class="p">:</span><span class="n">DecrementPhysicsThreshold</span><span class="p">(</span><span class="s2">&quot;VerticalSpeed&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="s2">&quot;VerticalSpeed&quot;</span><span class="p">))</span> <span class="c1">--&gt; 0</span>
 </code></pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method will throw an error if the detection it self for <code>physicsThreshold</code> doesn't exist or isn't enabled.</p>
 </div>
 <h3 id="playerprofilegetphysicsthresholdincrement"><code>PlayerProfile:GetPhysicsThresholdIncrement()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="n">physicsThreshold</span> <span class="p">:</span> <span class="n">string</span><span class="p">)</span> <span class="c1">--&gt; number [thresholdIncrement]</span>

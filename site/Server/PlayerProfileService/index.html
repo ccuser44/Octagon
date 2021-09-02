@@ -403,27 +403,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofileloaded" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileLoaded
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofiledestroyed" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileDestroyed
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofileinit" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileInit
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#playerprofileserviceloadedplayerprofiles" class="md-nav__link">
     PlayerProfileService.LoadedPlayerProfiles
   </a>
@@ -586,27 +565,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofileloaded" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileLoaded
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofiledestroyed" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileDestroyed
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#playerprofileserviceonplayerprofileinit" class="md-nav__link">
-    PlayerProfileService.OnPlayerProfileInit
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#playerprofileserviceloadedplayerprofiles" class="md-nav__link">
     PlayerProfileService.LoadedPlayerProfiles
   </a>
@@ -648,28 +606,8 @@
 <p>The PlayerProfileService module provides methods to access player profiles easily.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This section does not include additional methods which are to be used by Octagon internally. It only includes the necessary information only.</p>
+<p>This section does not include additional methods / members which are used by Octagon internally. It only includes the necessary information only.</p>
 </div>
-<h3 id="playerprofileserviceonplayerprofileloaded"><code>PlayerProfileService.OnPlayerProfileLoaded</code></h3>
-<div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">OnPlayerProfileLoaded</span> <span class="p">:</span> <span class="n">Signal</span>  <span class="p">(</span><span class="n">playerProfile</span> <span class="p">:</span> <span class="n">PlayerProfile</span><span class="p">)</span>
-</code></pre></div>
-<p>A signal which is fired whenever a new player profile is loaded.</p>
-<div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">OnPlayerProfileLoaded</span><span class="p">:</span><span class="n">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">playerProfile</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;%s&#39;s profile was loaded&quot;</span><span class="p">):</span><span class="n">format</span><span class="p">(</span><span class="n">playerProfile</span><span class="p">.</span><span class="n">Player</span><span class="p">))</span>
-<span class="kr">end</span>
-</code></pre></div>
-<h3 id="playerprofileserviceonplayerprofiledestroyed"><code>PlayerProfileService.OnPlayerProfileDestroyed</code></h3>
-<div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">OnPlayerProfileDestroyed</span> <span class="p">:</span> <span class="n">Signal</span> <span class="p">(</span><span class="n">player</span> <span class="p">:</span> <span class="n">Player</span><span class="p">)</span>
-</code></pre></div>
-<p>A signal which is fired whenever a player profile is destroyed through <a href="https://silentsreplacement.github.io/Octagon/Server/PlayerProfile/#playerprofiledestroy">PlayerProfile:Destroy()</a>.</p>
-<div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">OnPlayerProfileDestroyed</span><span class="p">:</span><span class="n">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;%s&#39;s profile was destroyed&quot;</span><span class="p">):</span><span class="n">format</span><span class="p">(</span><span class="n">player</span><span class="p">))</span>
-<span class="kr">end</span>
-</code></pre></div>
-<h3 id="playerprofileserviceonplayerprofileinit"><code>PlayerProfileService.OnPlayerProfileInit</code></h3>
-<div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">OnPlayerProfileInit</span> <span class="p">:</span> <span class="n">Signal</span> <span class="p">(</span><span class="n">playerProfile</span> <span class="p">:</span> <span class="n">PlayerProfile</span><span class="p">)</span>
-</code></pre></div>
-<p>A signal which is fired whenever a player's profile is init through <a href="https://silentsreplacement.github.io/Octagon/Server/PlayerProfile/#playerprofileinit">PlayerProfile:Init</a>.</p>
 <h3 id="playerprofileserviceloadedplayerprofiles"><code>PlayerProfileService.LoadedPlayerProfiles</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfileService</span><span class="p">.</span><span class="n">LoadedPlayerProfiles</span> <span class="p">:</span> <span class="n">table</span>
 </code></pre></div>
