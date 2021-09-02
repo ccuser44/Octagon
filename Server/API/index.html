@@ -756,8 +756,8 @@ through those parts even if their property <code>CanCollide</code> isn't set to 
 <h3 id="octagontemporarilyblacklistplayerfrombeingmonitored"><code>Octagon.TemporarilyBlacklistPlayerFromBeingMonitored()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">TemporarilyBlacklistPlayerFromBeingMonitored</span><span class="p">(</span>
     <span class="n">player</span> <span class="p">:</span> <span class="n">Player</span><span class="p">,</span>
-    <span class="n">value</span> <span class="p">:</span> <span class="n">number</span> <span class="o">|</span> <span class="n">RBXScriptSignal</span> <span class="o">|</span> <span class="kr">function</span>
-<span class="err">)</span> <span class="c1">--&gt; nil []</span>
+    <span class="n">value</span> <span class="p">:</span> <span class="n">number</span> <span class="o">|</span> <span class="n">RBXScriptSignal</span> <span class="o">|</span> <span class="kr">function</span> <span class="err">|</span> <span class="nf">table</span> 
+<span class="p">)</span> <span class="c1">--&gt; nil []</span>
 </code></pre></div>
 <p>Temporarily black lists the player from being monitored by Octagon.</p>
 <table>
@@ -781,11 +781,15 @@ through those parts even if their property <code>CanCollide</code> isn't set to 
 <td>The function to be called and done executed before the player will be monitored again by Octagon.</td>
 </tr>
 <tr>
-<td><code>value : RBXScriptSignal | Signal</code></td>
-<td>A signal (which contains a <code>Wait</code> method) or a RBXScriptSignal, whose <code>Wait</code> method will be called and done completing before the player will be monitored again by Octagon</td>
+<td><code>value : RBXScriptSignal | table</code></td>
+<td>A RBXScriptSignal or table (which contains a <code>Wait</code> method), whose <code>Wait</code> method will be called. Once the <code>Wait</code> method has finished yielding the thread,  the player will be monitored back again by Octagon</td>
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not try to attempt to blacklist a player who isn't being monitored as it is extremely redundant, a error will be thrown!</p>
+</div>
                 
               
               
