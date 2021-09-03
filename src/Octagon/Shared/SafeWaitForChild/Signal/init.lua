@@ -5,12 +5,9 @@
 --[[
 	Signal.new() --> Signal []
 	Signal.IsSignal(self : any) --> boolean [IsSignal]
-
 	-- Only when accessed from an object returned by Signal.new:
-
 	Signal.ConnectedConnectionCount : number
 	Signal.ConnectionListHead : function | nli
-
 	Signal:Connect(callBack : function) --> Connection []
 	Signal:Fire(tuple : any) --> nil []
 	Signal:DeferredFire(tuple : any) --> nil []
@@ -126,9 +123,9 @@ function Signal:Wait()
 
 	-- Prevent no return values:
 	if #returnValues >= LocalConstants.MinArgumentCount then
-		return returnValues[1]
-	else
 		return table.unpack(returnValues)
+	else
+		return returnValues[1]
 	end
 end
 
