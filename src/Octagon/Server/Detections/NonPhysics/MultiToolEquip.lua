@@ -63,6 +63,7 @@ function MultiToolEquip.Start(playerProfile)
 		if not tool:IsA("BackpackItem") then
 			return
 		end
+		
 		local playerEquippedToolsData = playerEquippedTools[player]
 
 		playerEquippedToolsData.Tools[tool] = nil
@@ -121,7 +122,7 @@ function MultiToolEquip._initSignals()
 				break
 			end
 
-			-- Parent the tool back to the backpack;
+			-- Parent the tool back to the backpack:
 			task.wait()
 			tool.Parent = player.Backpack
  
