@@ -63,12 +63,12 @@ function MultiToolEquip.Start(playerProfile)
 		if not tool:IsA("BackpackItem") then
 			return
 		end
-		
+
 		local playerEquippedToolsData = playerEquippedTools[player]
 
 		playerEquippedToolsData.Tools[tool] = nil
 		playerEquippedToolsData.Count -= 1
-		playerEquippedToolsData.OnToolEnequip:DeferredFire()
+		playerEquippedToolsData.OnToolEnequip:Fire()
 	end)
 
 	playerProfile.DetectionMaid:AddTask(childAddedConnection)
