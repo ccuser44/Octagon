@@ -228,16 +228,11 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 	)
 
 	local canSetNetworkOwnership, response = basePart:CanSetNetworkOwnership()
-
+ 
 	if canSetNetworkOwnership then
 		basePart:SetNetworkOwner(networkOwner)
 	else
-		warn(
-			("[Util.SetBasePartNetworkOwner()]: Failed. Error: %s"):format(
-				basePart:GetFullName(),
-				response
-			)
-		)
+		warn(("[Util.SetBasePartNetworkOwner()]: Failed. Error: %s"):format(response))
 	end
 
 	return nil
