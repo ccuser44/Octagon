@@ -33,7 +33,7 @@ local LocalConstants = {
 	MaxFailedPcallTries = 5,
 	OwnerGroupRank = 255,
 	DefaultPlayerGroupRank = 0,
-	PlayerMinWalkingDistance = 0.125
+	PlayerMinWalkingDistance = 0.125,
 }
 
 function Util.IsPlayerGameOwner(player)
@@ -233,7 +233,7 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 		basePart:SetNetworkOwner(networkOwner)
 	else
 		warn(
-			("[Util.SetBasePartNetworkOwner()]: Cannot set network owner of %s. Error: %s"):format(
+			("[Util.SetBasePartNetworkOwner()]: Failed. Error: %s"):format(
 				basePart:GetFullName(),
 				response
 			)
@@ -367,13 +367,7 @@ function Util._getPlayerRankInGroup(player, groupId)
 	)
 
 	if not wasSuccessFull then
-		warn(
-			("[Util._getPlayerRankInGroup()]: Failed to retrieve %s's group rank. Error: %s"):format(
-				player:GetFullName(),
-				groupId,
-				response
-			)
-		)
+		warn(("[Util._getPlayerRankInGroup()]: Failed. Error: %s"):format(response))
 
 		response = LocalConstants.DefaultPlayerGroupRank
 	end
