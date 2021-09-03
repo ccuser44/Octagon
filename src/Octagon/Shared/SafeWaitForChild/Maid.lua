@@ -5,14 +5,12 @@
 --[[
 	Maid.new() --> Maid []
 	Maid.IsMaid(self : any) --> boolean [IsMaid]
-
 	-- Only when accessed from an object created by Maid.new():
 	
 	Maid:AddTask(
 		task : table | function | RBXScriptConnection,
 		customCleanupMethod : string | nil
 	) --> task []
-
 	Maid:Cleanup() --> nil []
 	Maid:IsDestroyed() --> boolean [IsDestroyed]
 	Maid:RemoveTask(task) --> nil []
@@ -210,7 +208,7 @@ end
 
 function Maid._getDefaultMethod(task)
 	for _, method in pairs(LocalConstants.Methods.Default) do
-		if typeof(task[method]) == "function" then
+		if task[method] ~= nil then
 			return method
 		end
 	end
