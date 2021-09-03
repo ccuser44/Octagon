@@ -33,6 +33,7 @@ local LocalConstants = { MinPlayerHardGroundLandYVelocity = 145 }
 Client.OnPlayerFling = Signal.new()
 Client.OnPlayerHardGroundLand = Signal.new()
 Client._maid = Maid.new()
+Client._humanoidStateTrackerMaid = Maid.new()
 
 local localPlayer = Players.LocalPlayer
 
@@ -59,6 +60,7 @@ function Client.Start()
 	-- with the new character rather than working with the
 	-- old one:
 	Client._maid:AddTask(localPlayer.CharacterAdded:Connect(function(character)
+		Client._humanoidStateTrackerMaid:Cleanup()
 		Client._trackHumanoidState(character)
 	end))
 
@@ -83,7 +85,7 @@ function Client._init()
 
 	return nil
 end
- 
+
 function Client._cleanup()
 	DestroyAllMaids(Client)
 
@@ -97,20 +99,23 @@ function Client._trackHumanoidState(character)
 		return nil
 	end
 
-	humanoid.StateChanged:Connect(function(_, newState)
-		if newState == Enum.HumanoidStateType.Ragdoll then
-			Client.OnPlayerFling:Fire()
-		elseif
-			newState == Enum.HumanoidStateType.Landed and localPlayer.Character.PrimaryPart
-		then
-			if
-				math.abs(localPlayer.Character.PrimaryPart.AssemblyLinearVelocity.Y)
-				>= LocalConstants.MinPlayerHardGroundLandYVelocity
+	Client._humanoidStateTrackerMaid:AddTask(
+		humanoid.StateChanged:Connect(function(_, newState)
+			if newState == Enum.HumanoidStateType.Ragdoll then
+				Client.OnPlayerFling:Fire()
+			elseif
+				newState == Enum.HumanoidStateType.Landed
+				and localPlayer.Character.PrimaryPart ~= nil
 			then
-				Client.OnPlayerHardGroundLand:Fire()
+				if
+					math.abs(localPlayer.Character.PrimaryPart.AssemblyLinearVelocity.Y)
+					>= LocalConstants.MinPlayerHardGroundLandYVelocity
+				then
+					Client.OnPlayerHardGroundLand:Fire()
+				end
 			end
-		end
-	end)
+		end)
+	)
 
 	return nil
 end
