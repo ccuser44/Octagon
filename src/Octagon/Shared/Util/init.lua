@@ -24,7 +24,7 @@ local Workspace = game:GetService("Workspace")
 local Octagon = script:FindFirstAncestor("Octagon")
 local SharedConstants = require(Octagon.Shared.SharedConstants)
 local Config = require(Octagon.Server.Config)
-local PlayerUtil = require(Octagon.Shared.PlayerUtil)
+local PlayerUtil = require(script.PlayerUtil)
 
 local LocalConstants = {
 	FailedPcallRetryInterval = 5,
