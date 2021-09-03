@@ -41,7 +41,7 @@ function MultiToolEquip.Start(playerProfile)
 		or {
 			Count = 0,
 			Tools = {},
-			OnToolEnequip = Signal.new(),
+			LastTool = nil,
 		}
 
 	local childAddedConnection = player.Character.ChildAdded:Connect(function(tool)
@@ -53,7 +53,8 @@ function MultiToolEquip.Start(playerProfile)
 
 		playerEquippedToolsData.Tools[tool] = tool
 		playerEquippedToolsData.Count += 1
-
+		playerEquippedToolsData.LastTool = playerEquippedToolsData.LastTool or tool
+		
 		if playerEquippedToolsData.Count > LocalConstants.MaxEquippedToolCount then
 			MultiToolEquip._onPlayerDetection:Fire(playerProfile)
 		end
@@ -68,7 +69,10 @@ function MultiToolEquip.Start(playerProfile)
 
 		playerEquippedToolsData.Tools[tool] = nil
 		playerEquippedToolsData.Count -= 1
-		playerEquippedToolsData.OnToolEnequip:Fire()
+		
+		if playerEquippedToolsData.LastTool == tool then
+			playerEquippedToolsData.LastTool = nil
+		end
 	end)
 
 	playerProfile.DetectionMaid:AddTask(childAddedConnection)
@@ -112,23 +116,17 @@ function MultiToolEquip._initSignals()
 	MultiToolEquip._onPlayerDetection:Connect(function(playerProfile)
 		local player = playerProfile.Player
 		local playerEquippedToolsData = playerEquippedTools[player]
+		local lastToolEquipped =  playerEquippedToolsData.LastTool
 
-		-- Parent tools equipped to the player's backpack
-		-- until the amount of tools the player has equipped is <=
-		-- LocalConstants.MaxEquippedToolCount, effectively preventing
-		-- multiple tools being equipped:
+		-- Parent all equipped tools back to the player's backpack:
 		for _, tool in pairs(playerEquippedToolsData.Tools) do
-			if playerEquippedToolsData.Count == LocalConstants.MaxEquippedToolCount then
-				break
-			end
-
-			-- Parent the tool back to the backpack:
 			task.wait()
 			tool.Parent = player.Backpack
- 
-			if playerEquippedToolsData.Tools[tool] ~= nil then
-				playerEquippedToolsData.OnToolEnequip:Wait()
-			end
+		end
+		
+		-- Finally equip the last tool equipped:
+		if lastToolEquipped ~= nil then
+			lastToolEquipped.Parent = player.Character
 		end
 	end)
 
