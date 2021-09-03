@@ -17,8 +17,6 @@
 
 local Util = {
 	_shouldMonitorPlayerResultsCache = {},
-	_isPlayerGameOwnerResultsCache = {},
-	_playerGroupRanksCache = {},
 }
 
 local Workspace = game:GetService("Workspace")
@@ -26,7 +24,7 @@ local Workspace = game:GetService("Workspace")
 local Octagon = script:FindFirstAncestor("Octagon")
 local SharedConstants = require(Octagon.Shared.SharedConstants)
 local Config = require(Octagon.Server.Config)
-local RetryPcall = require(Octagon.Shared.RetryPcall)
+local PlayerUtil = require(Octagon.Shared.PlayerUtil)
 
 local LocalConstants = {
 	FailedPcallRetryInterval = 5,
@@ -37,34 +35,7 @@ local LocalConstants = {
 }
 
 function Util.IsPlayerGameOwner(player)
-	assert(
-		typeof(player) == "Instance" and player:IsA("Player"),
-		SharedConstants.ErrorMessages.InvalidArgument:format(
-			1,
-			"Util.IsPlayerGameOwner()",
-			"Player",
-			typeof(player)
-		)
-	)
-
-	local cachedResult = Util._isPlayerGameOwnerResultsCache[player.UserId]
-
-	if cachedResult ~= nil then
-		return cachedResult
-	end
-
-	local isPlayerGameOwner = false
-
-	if game.CreatorType == Enum.CreatorType.Group then
-		isPlayerGameOwner = Util._getPlayerRankInGroup(player, game.CreatorId)
-			== LocalConstants.OwnerGroupRank
-	else
-		isPlayerGameOwner = player.UserId == game.CreatorId
-	end
-
-	Util._isPlayerGameOwnerResultsCache[player.UserId] = isPlayerGameOwner
-
-	return isPlayerGameOwner
+	return PlayerUtil.IsPlayerGameOwner(player)
 end
 
 function Util.IsPlayerSubjectToBeMonitored(player)
@@ -319,36 +290,6 @@ end
 function Util._isPlayerBlackListedFromBeingMonitored(player)
 	return Config.PlayersBlackListedFromBeingMonitored[player.UserId]
 		and not Util.IsPlayerGameOwner(player)
-end
-
-function Util._getPlayerRankInGroup(player, groupId)
-	local cachedResult = Util._playerGroupRanksCache[player.UserId]
-
-	if (cachedResult and cachedResult[groupId]) ~= nil then
-		return cachedResult[groupId]
-	end
-
-	local wasSuccessFull, response = RetryPcall(
-		LocalConstants.MaxFailedPcallTries,
-		LocalConstants.FailedPcallRetryInterval,
-
-		{
-			player.GetRankInGroup,
-			player,
-			groupId,
-		}
-	)
-
-	if not wasSuccessFull then
-		warn(("[Util._getPlayerRankInGroup()]: Failed. Error: %s"):format(response))
-
-		response = LocalConstants.DefaultPlayerGroupRank
-	end
-
-	Util._playerGroupRanksCache[player.UserId] = Util._playerGroupRanksCache[player.UserId] or {}
-	Util._playerGroupRanksCache[player.UserId][groupId] = response
-
-	return response
 end
 
 return Util
