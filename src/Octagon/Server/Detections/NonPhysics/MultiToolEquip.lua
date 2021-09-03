@@ -41,11 +41,12 @@ function MultiToolEquip.Start(playerProfile)
 		or {
 			Count = 0,
 			Tools = {},
+			OnToolEnequip = Signal.new(),
 		}
 
 	local childAddedConnection = player.Character.ChildAdded:Connect(function(tool)
 		if not tool:IsA("BackpackItem") then
-			return nil
+			return
 		end
 
 		local playerEquippedToolsData = playerEquippedTools[player]
@@ -58,7 +59,20 @@ function MultiToolEquip.Start(playerProfile)
 		end
 	end)
 
+	local childRemovedConnection = player.Character.ChildRemoved:Connect(function(tool)
+		if not tool:IsA("BackpackItem") then
+			return
+		end
+		local playerEquippedToolsData = playerEquippedTools[player]
+
+		playerEquippedToolsData.Tools[tool] = nil
+		playerEquippedToolsData.Count -= 1
+		playerEquippedToolsData.OnToolEnequip:Fire()
+	end)
+
 	playerProfile.DetectionMaid:AddTask(childAddedConnection)
+	playerProfile.DetectionMaid:AddTask(childRemovedConnection)
+	MultiToolEquip._maid:AddTask(childRemovedConnection)
 	MultiToolEquip._maid:AddTask(childAddedConnection)
 
 	-- Handle case where the player has already equipped more tools before the above
@@ -102,22 +116,18 @@ function MultiToolEquip._initSignals()
 		-- until the amount of tools the player has equipped is <=
 		-- LocalConstants.MaxEquippedToolCount, effectively preventing
 		-- multiple tools being equipped:
-
 		for _, tool in pairs(playerEquippedToolsData.Tools) do
 			if playerEquippedToolsData.Count == LocalConstants.MaxEquippedToolCount then
 				break
 			end
 
-			playerEquippedToolsData.Count -= 1
-			playerEquippedToolsData.Tools[tool] = nil
+			-- Parent the tool back to the backpack;
+			task.wait()
+			tool.Parent = player.Backpack
 
-			-- Parent the tool back to the backpack. Do this in the same frame except
-			-- at a very very slightly later time to prevent bugs:
-			task.defer(function()
-				if not Util.IsInstanceDestroyed(tool) then
-					tool.Parent = player.Backpack
-				end
-			end)
+			if playerEquippedToolsData.Tools[tool] ~= nil then
+				playerEquippedToolsData.OnToolEnequip:Wait()
+			end
 		end
 	end)
 
