@@ -83,6 +83,7 @@ function NoClip._isNoClipping(player, physicsData)
 				SharedConstants.Tags.NoClipBlackListed:format(player.Name)
 			)
 			or not primaryPart:CanCollideWith(instance)
+			or not instance.CanCollide
 			or Players:GetPlayerFromCharacter(instance.Parent)
 			or Players:GetPlayerFromCharacter(instance.Parent.Parent)
 		then
