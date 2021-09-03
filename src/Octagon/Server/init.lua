@@ -83,9 +83,9 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 
 	assert(
 		playerProfile,
-		(
-			"Cannot temporarily black list player [%s] as they aren't being monitored by Octagon"
-		):format(player.Name)
+		("Cannot temporarily black list %s as they aren't being monitored by Octagon"):format(
+			player:GetFullName()
+		)
 	)
 
 	Server.MonitoringPlayerProfiles[player] = nil
@@ -266,10 +266,8 @@ function Server.Start()
 
 				Server._initSafeChecksForPlayerProfile(playerProfile)
 				Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
-				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-					playerProfile:SetDeinitTag()
-					playerProfile:Init(Server._detectionsInit.Physics)
-				end)
+				playerProfile:SetDeinitTag()
+				playerProfile:Init(Server._detectionsInit.Physics)
 
 				return nil
 			end
@@ -534,11 +532,6 @@ function Server._initSafeChecksForPlayerProfile(playerProfile)
 				-- prevent horizontal / vertical speed false positive:
 				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
 					humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
-					-- Player has got out of the seat, but yield for a second before
-					-- finishing execution to prevent physics detections from immediately
-					-- starting. This prevents false positives when a player gets out of a
-					-- seat quickly:
-					task.wait(1)
 				end)
 			end)
 		)
@@ -574,7 +567,7 @@ function Server._cleanupDetectionsForPlayer(player)
 			requiredModule.CleanupForPlayer(player)
 		end
 	end
-         
+
 	return nil
 end
 

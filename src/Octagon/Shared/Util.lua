@@ -365,10 +365,10 @@ function Util._getPlayerRankInGroup(player, groupId)
 			groupId,
 		}
 	)
- 
+
 	if not wasSuccessFull then
 		warn(
-			("[Util._getPlayerRankInGroup()]: Failed to get %s's group rank in group of group id: %d. Error: %s"):format(
+			("[Util._getPlayerRankInGroup()]: Failed to retrieve %s's group rank. Error: %s"):format(
 				player:GetFullName(),
 				groupId,
 				response

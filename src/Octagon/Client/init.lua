@@ -122,9 +122,7 @@ end
 
 function Client._initModules()
 	Client._areModulesInit = true
-
-	script.Parent.Server:Destroy()
-
+	
 	for _, child in ipairs(script:GetChildren()) do
 		Client[child.Name] = child
 	end
