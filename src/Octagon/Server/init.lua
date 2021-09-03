@@ -94,7 +94,7 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 		if not Server.AreMonitoringPlayerProfilesLeft() then
 			-- This player that is temporary black listed, is the only current
 			-- player that is being monitored, it's safe to disconnect the heartbeat
-			-- disconnection:
+			-- connection:
 			Server._heartBeatScriptConnection:Disconnect()
 		end
 	end
@@ -105,7 +105,10 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 	end)
 
 	task.spawn(function()
-		if typeof(value) == "RBXScriptSignal" or Signal.IsSignal(value) then
+		if
+			typeof(value) == "RBXScriptSignal"
+			or typeof(value) == "table" and value.Wait ~= nil
+		then
 			value:Wait()
 		elseif typeof(value) == "function" then
 			value()
@@ -567,7 +570,7 @@ end
 function Server._cleanupDetectionsForPlayer(player)
 	for _, module in pairs(Server._detectionsInit.NonPhysics) do
 		local requiredModule = require(module)
- 
+
 		if requiredModule.CleanupForPlayer ~= nil then
 			requiredModule.CleanupForPlayer(player)
 		end
