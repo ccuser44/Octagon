@@ -567,8 +567,8 @@ end
 function Server._cleanupDetectionsForPlayer(player)
 	for _, module in pairs(Server._detectionsInit.NonPhysics) do
 		local requiredModule = require(module)
-
-		if requiredModule.CleanupForPlayer then
+ 
+		if requiredModule.CleanupForPlayer ~= nil then
 			requiredModule.CleanupForPlayer(player)
 		end
 	end

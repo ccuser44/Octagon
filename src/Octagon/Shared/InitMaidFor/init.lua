@@ -44,9 +44,11 @@ return function(tabl, maid, method)
 	)
 
 	for _, value in pairs(tabl) do
-		if method(value) then
-			maid:AddTask(value)
+		if not method(value) then
+			continue
 		end
+
+		maid:AddTask(value)
 	end
 
 	return nil

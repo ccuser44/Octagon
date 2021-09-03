@@ -252,7 +252,7 @@ function PlayerProfile:RegisterPhysicsDetectionFlag(detection, flag)
 		and require(detections.Physics[detection])
 
 	assert(
-		physicsDetectionModule or detections.NonPhysics:FindFirstChild(detection),
+		(physicsDetectionModule or detections.NonPhysics:FindFirstChild(detection)) ~= nil,
 		"Invalid detection"
 	)
 

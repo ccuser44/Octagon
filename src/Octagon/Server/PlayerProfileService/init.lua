@@ -69,8 +69,8 @@ function PlayerProfileService.GetPlayerProfile(player)
 	)
 
 	local playerProfile = PlayerProfileService.LoadedPlayerProfiles[player]
-
-	if playerProfile then
+ 
+	if playerProfile ~= nil then
 		return playerProfile
 	elseif
 		PlayerProfileService._isInit
