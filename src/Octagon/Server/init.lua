@@ -536,6 +536,7 @@ function Server._initSafeChecksForPlayerProfile(playerProfile)
 				-- prevent horizontal / vertical speed false positive:
 				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
 					humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
+					task.wait(1)
 				end)
 			end)
 		)

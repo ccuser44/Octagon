@@ -57,7 +57,7 @@ function VerticalSpeed.Start(detectionData, playerProfile, dt)
 	if averageVerticalSpeed > playerProfile.PhysicsThresholds.VerticalSpeed then
 		-- Common case: the event for listening to the humanoid's seat part changing was deferred
 		-- and the player was black listed while this detection ran:
-		if humanoid and humanoid.SeatPart then
+		if (humanoid and humanoid.SeatPart) ~= nil then
 			return nil
 		end
 
