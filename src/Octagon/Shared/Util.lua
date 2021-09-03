@@ -18,13 +18,13 @@
 local Util = {
 	_shouldMonitorPlayerResultsCache = {},
 	_isPlayerGameOwnerResultsCache = {},
+	_playerGroupRanksCache = {},
 }
 
 local Workspace = game:GetService("Workspace")
 
 local Octagon = script:FindFirstAncestor("Octagon")
 local SharedConstants = require(Octagon.Shared.SharedConstants)
-local Signal = require(Octagon.Shared.Signal)
 local Config = require(Octagon.Server.Config)
 local RetryPcall = require(Octagon.Shared.RetryPcall)
 
@@ -49,22 +49,11 @@ function Util.IsPlayerGameOwner(player)
 
 	local cachedResult = Util._isPlayerGameOwnerResultsCache[player.UserId]
 
-	-- If the cached result is a signal, that means that this method
-	-- was called again while it was performing a lookup for the same
-	-- argument, wait until that signal fires and return the results
-	-- instead of performing an other unnecessary lookup. Else, return the
-	-- result because we know it was already computed:
 	if cachedResult ~= nil then
-		if Signal.IsSignal(cachedResult) then
-			return cachedResult:Wait()
-		else
-			return cachedResult
-		end
+		return cachedResult
 	end
 
 	local isPlayerGameOwner = false
-	local onIsPlayerGameOwnerResult = Signal.new()
-	Util._isPlayerGameOwnerResultsCache[player.UserId] = onIsPlayerGameOwnerResult
 
 	if game.CreatorType == Enum.CreatorType.Group then
 		isPlayerGameOwner = Util._getPlayerRankInGroup(player, game.CreatorId)
@@ -72,9 +61,6 @@ function Util.IsPlayerGameOwner(player)
 	else
 		isPlayerGameOwner = player.UserId == game.CreatorId
 	end
-
-	onIsPlayerGameOwnerResult:Fire(isPlayerGameOwner)
-	onIsPlayerGameOwnerResult:Destroy()
 
 	Util._isPlayerGameOwnerResultsCache[player.UserId] = isPlayerGameOwner
 
@@ -94,21 +80,9 @@ function Util.IsPlayerSubjectToBeMonitored(player)
 
 	local cachedResult = Util._shouldMonitorPlayerResultsCache[player.UserId]
 
-	-- If the cached result is a signal, that means that this method
-	-- was called again while it was performing a lookup for the same
-	-- argument, wait until that signal fires and return the results
-	-- instead of performing an other unnecessary lookup. Else, return the
-	-- result because we know it was already computed:
 	if cachedResult ~= nil then
-		if Signal.IsSignal(cachedResult) then
-			return cachedResult:Wait()
-		else
-			return cachedResult
-		end
+		return cachedResult
 	end
-
-	local onShouldMonitorPlayerResult = Signal.new()
-	Util._shouldMonitorPlayerResultsCache[player] = onShouldMonitorPlayerResult
 
 	local isPlayerBlackListedFromBeingMonitored = Util._isPlayerBlackListedFromBeingMonitored(
 		player
@@ -153,8 +127,6 @@ function Util.IsPlayerSubjectToBeMonitored(player)
 	end
 
 	local shouldMonitorPlayer = not isPlayerBlackListedFromBeingMonitored
-	onShouldMonitorPlayerResult:Fire(shouldMonitorPlayer)
-	onShouldMonitorPlayerResult:Destroy()
 
 	-- Cache lookup result for later reuse:
 	Util._shouldMonitorPlayerResultsCache[player.UserId] = shouldMonitorPlayer
@@ -228,7 +200,7 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 	)
 
 	local canSetNetworkOwnership, response = basePart:CanSetNetworkOwnership()
- 
+
 	if canSetNetworkOwnership then
 		basePart:SetNetworkOwner(networkOwner)
 	else
@@ -350,6 +322,12 @@ function Util._isPlayerBlackListedFromBeingMonitored(player)
 end
 
 function Util._getPlayerRankInGroup(player, groupId)
+	local cachedResult = Util._playerGroupRanksCache[player.UserId]
+
+	if (cachedResult and cachedResult[groupId]) ~= nil then
+		return cachedResult[groupId]
+	end
+
 	local wasSuccessFull, response = RetryPcall(
 		LocalConstants.MaxFailedPcallTries,
 		LocalConstants.FailedPcallRetryInterval,
@@ -366,6 +344,9 @@ function Util._getPlayerRankInGroup(player, groupId)
 
 		response = LocalConstants.DefaultPlayerGroupRank
 	end
+
+	Util._playerGroupRanksCache[player.UserId] = Util._playerGroupRanksCache[player.UserId] or {}
+	Util._playerGroupRanksCache[player.UserId][groupId] = response
 
 	return response
 end
