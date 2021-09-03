@@ -517,13 +517,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#utilisplayergameowner" class="md-nav__link">
-    Util.IsPlayerGameOwner()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#utilisplayersubjecttobemonitored" class="md-nav__link">
     Util.IsPlayerSubjectToBeMonitored()
   </a>
@@ -668,13 +661,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#utilisplayergameowner" class="md-nav__link">
-    Util.IsPlayerGameOwner()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#utilisplayersubjecttobemonitored" class="md-nav__link">
     Util.IsPlayerSubjectToBeMonitored()
   </a>
@@ -747,14 +733,6 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This method will return <code>false</code> if <code>player</code>'s character isn't loaded.</p>
-</div>
-<h3 id="utilisplayergameowner"><code>Util.IsPlayerGameOwner()</code></h3>
-<div class="highlight"><pre><span></span><code><span class="n">Util</span><span class="p">.</span><span class="n">IsPlayerGameOwner</span><span class="p">(</span><span class="n">player</span> <span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="c1">--&gt; boolean [IsPlayerGameOwner]</span>
-</code></pre></div>
-<p>Returns a boolean indicating if the player is the owner of the game or the owner of the group the game is in.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This method may temporarily yield the thread if the game is under a group as it will send an GET HTTP request to retrieve <code>player</code>'s rank in order to determine if <code>player</code> is the owner of that group.</p>
 </div>
 <h3 id="utilisplayersubjecttobemonitored"><code>Util.IsPlayerSubjectToBeMonitored()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">Util</span><span class="p">.</span><span class="n">IsPlayerSubjectToBeMonitored</span><span class="p">(</span><span class="n">player</span> <span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="c1">--&gt; boolean [IsPlayerSubjectToBeMonitored]</span>
