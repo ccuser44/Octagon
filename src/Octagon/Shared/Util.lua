@@ -234,7 +234,7 @@ function Util.SetBasePartNetworkOwner(basePart, networkOwner)
 	else
 		warn(
 			("[Util.SetBasePartNetworkOwner()]: Cannot set network owner of %s. Error: %s"):format(
-				basePart.Name,
+				basePart:GetFullName(),
 				response
 			)
 		)
@@ -365,20 +365,20 @@ function Util._getPlayerRankInGroup(player, groupId)
 			groupId,
 		}
 	)
-
+ 
 	if not wasSuccessFull then
 		warn(
 			("[Util._getPlayerRankInGroup()]: Failed to get %s's group rank in group of group id: %d. Error: %s"):format(
-				player.Name,
+				player:GetFullName(),
 				groupId,
 				response
 			)
 		)
 
-		return LocalConstants.DefaultPlayerGroupRank
-	else
-		return response
+		response = LocalConstants.DefaultPlayerGroupRank
 	end
+
+	return response
 end
 
 return Util
