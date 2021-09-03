@@ -82,7 +82,7 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 	local playerProfile = PlayerProfileService.GetPlayerProfile(player)
 
 	assert(
-		playerProfile,
+		playerProfile ~= nil,
 		("Cannot temporarily black list %s as they aren't being monitored by Octagon"):format(
 			player:GetFullName()
 		)
