@@ -78,17 +78,6 @@ Returns a boolean indicating if `player` has the primary part and a humanoid ins
 !!!note
     This method will return `false` if `player`'s character isn't loaded.
 
-### `Util.IsPlayerGameOwner()`
-
-```lua
-Util.IsPlayerGameOwner(player : Player) --> boolean [IsPlayerGameOwner]
-```
-
-Returns a boolean indicating if the player is the owner of the game or the owner of the group the game is in.
-
-!!!note
-    This method may temporarily yield the thread if the game is under a group as it will send an GET HTTP request to retrieve `player`'s rank in order to determine if `player` is the owner of that group.
-
 ### `Util.IsPlayerSubjectToBeMonitored()`
 ```lua
 Util.IsPlayerSubjectToBeMonitored(player : Player) --> boolean [IsPlayerSubjectToBeMonitored]

@@ -142,6 +142,8 @@ function PlayerUtil.GetPlayerGroupRoleInGroup(player, groupId)
 	PlayerUtil._playerGroupRolesCache[player.UserId] = PlayerUtil._playerGroupRolesCache[player.UserId]
 		or {}
 	PlayerUtil._playerGroupRolesCache[player.UserId][groupId] = response
+
+	return response
 end
 
 function PlayerUtil.GetPolicyInfoForPlayer(player)
@@ -174,6 +176,8 @@ function PlayerUtil.GetPolicyInfoForPlayer(player)
 	end
 
 	PlayerUtil._playerPoliciesCache[player.UserId] = response
+
+	return response
 end
 
 function PlayerUtil.DoesPlayerOwnGamePass(playerUserId, gamePassId)
@@ -253,6 +257,8 @@ function PlayerUtil.GetPlayerCountryRegion(player)
 	end
 
 	PlayerUtil._playerCountryRegionsCache[player.UserId] = response
+
+	return response
 end
 
 function PlayerUtil.GetPlayerFromInstance(instance)

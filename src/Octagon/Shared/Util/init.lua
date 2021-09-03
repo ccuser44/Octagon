@@ -12,7 +12,6 @@
     Util.GetBasePartNetworkOwner(basePart : BasePart) --> Player | nil [BasePartNetworkOwner]
     Util.GetPlayerEquippedTools(player : Player) --> table [equippedTools], number [equippedToolCount]
 	Util.IsPlayerSubjectToBeMonitored(player : Player) --> boolean [IsPlayerSubjectToBeMonitored]
-    Util.IsPlayerGameOwner(player : Player) --> boolean [IsPlayerGameOwner]
 ]]
 
 local Util = {
@@ -33,10 +32,6 @@ local LocalConstants = {
 	DefaultPlayerGroupRank = 0,
 	PlayerMinWalkingDistance = 0.125,
 }
-
-function Util.IsPlayerGameOwner(player)
-	return PlayerUtil.IsPlayerGameOwner(player)
-end
 
 function Util.IsPlayerSubjectToBeMonitored(player)
 	assert(
@@ -60,7 +55,7 @@ function Util.IsPlayerSubjectToBeMonitored(player)
 	)
 
 	if not isPlayerBlackListedFromBeingMonitored then
-		local isPlayerGameOwner = Util.IsPlayerGameOwner(player)
+		local isPlayerGameOwner = PlayerUtil.IsPlayerGameOwner(player)
 
 		isPlayerBlackListedFromBeingMonitored = isPlayerGameOwner
 			and not Config.ShouldMonitorGameOwner
@@ -83,7 +78,7 @@ function Util.IsPlayerSubjectToBeMonitored(player)
 					):format(groupId)
 				)
 
-				local playerGroupRank = Util._getPlayerRankInGroup(player, groupId)
+				local playerGroupRank = PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 
 				isPlayerBlackListedFromBeingMonitored = playerGroupRank
 						== requiredPlayerGroupRank
@@ -289,7 +284,7 @@ end
 
 function Util._isPlayerBlackListedFromBeingMonitored(player)
 	return Config.PlayersBlackListedFromBeingMonitored[player.UserId]
-		and not Util.IsPlayerGameOwner(player)
+		and not PlayerUtil.IsPlayerGameOwner(player)
 end
 
 return Util

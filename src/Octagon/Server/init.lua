@@ -455,6 +455,10 @@ function Server._heartBeatUpdate(dt, verticalSpeed, horizontalSpeed)
 		local player = playerProfile.Player
 		local primaryPart = player.Character.PrimaryPart
 
+		if not primaryPart then
+			continue
+		end
+
 		for detection, module in pairs(Server._detectionsInit.Physics) do
 			local requiredModule = require(module)
 
