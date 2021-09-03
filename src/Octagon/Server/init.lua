@@ -416,10 +416,6 @@ function Server._cleanupDetections()
 		require(module).Cleanup()
 	end
 
-	for _, module in pairs(Server._detectionsInit.Physics) do
-		require(module).Cleanup()
-	end
-
 	return nil
 end
 
@@ -579,14 +575,6 @@ function Server._cleanupDetectionsForPlayer(player)
 		end
 	end
          
-	for _, module in pairs(Server._detectionsInit.Physics) do
-		local requiredModule = require(module)
-
-		if requiredModule.CleanupForPlayer then
-			requiredModule.CleanupForPlayer(player)
-		end
-	end
-
 	return nil
 end
 
