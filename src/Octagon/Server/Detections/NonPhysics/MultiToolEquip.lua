@@ -67,7 +67,7 @@ function MultiToolEquip.Start(playerProfile)
 
 		playerEquippedToolsData.Tools[tool] = nil
 		playerEquippedToolsData.Count -= 1
-		playerEquippedToolsData.OnToolEnequip:Fire()
+		playerEquippedToolsData.OnToolEnequip:DeferredFire()
 	end)
 
 	playerProfile.DetectionMaid:AddTask(childAddedConnection)
@@ -124,7 +124,7 @@ function MultiToolEquip._initSignals()
 			-- Parent the tool back to the backpack;
 			task.wait()
 			tool.Parent = player.Backpack
-
+ 
 			if playerEquippedToolsData.Tools[tool] ~= nil then
 				playerEquippedToolsData.OnToolEnequip:Wait()
 			end
