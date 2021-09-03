@@ -54,7 +54,7 @@ function MultiToolEquip.Start(playerProfile)
 		playerEquippedToolsData.Tools[tool] = tool
 		playerEquippedToolsData.Count += 1
 		playerEquippedToolsData.LastTool = playerEquippedToolsData.LastTool or tool
-		
+
 		if playerEquippedToolsData.Count > LocalConstants.MaxEquippedToolCount then
 			MultiToolEquip._onPlayerDetection:Fire(playerProfile)
 		end
@@ -69,7 +69,7 @@ function MultiToolEquip.Start(playerProfile)
 
 		playerEquippedToolsData.Tools[tool] = nil
 		playerEquippedToolsData.Count -= 1
-		
+
 		if playerEquippedToolsData.LastTool == tool then
 			playerEquippedToolsData.LastTool = nil
 		end
@@ -116,17 +116,21 @@ function MultiToolEquip._initSignals()
 	MultiToolEquip._onPlayerDetection:Connect(function(playerProfile)
 		local player = playerProfile.Player
 		local playerEquippedToolsData = playerEquippedTools[player]
-		local lastToolEquipped =  playerEquippedToolsData.LastTool
+		local lastEquippedTool = playerEquippedToolsData.LastTool
 
 		-- Parent all equipped tools back to the player's backpack:
 		for _, tool in pairs(playerEquippedToolsData.Tools) do
 			task.wait()
-			tool.Parent = player.Backpack
+
+			-- Handle edge case where the tool is immediately destroyed after being parented:
+			if tool.Parent == player.Character then
+				tool.Parent = player.Backpack
+			end
 		end
-		
-		-- Finally equip the last tool equipped:
-		if lastToolEquipped ~= nil then
-			lastToolEquipped.Parent = player.Character
+
+		-- Finally equip the last tool equipped if not destroyed / already equipped:
+		if lastEquippedTool ~= nil and lastEquippedTool.Parent == player.Backpack then
+			lastEquippedTool.Parent = player.Character
 		end
 	end)
 
