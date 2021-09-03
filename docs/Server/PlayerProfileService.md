@@ -19,7 +19,7 @@ A dictionary of all loaded player profiles.
 PlayerProfileService.GetPlayerProfile(player : Player) --> PlayerProfile | nil []
 ```
 
-Returns the player profile.
+Returns the player profile of `player`.
 
 !!!note
     - This method may temporarily yield the thread if the profile isn't initialized yet or not loaded in time.
