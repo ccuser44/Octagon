@@ -17,12 +17,12 @@
         dt : number
     ) --> nil []
 ]]
-
+ 
 local HorizontalSpeed = {
-	Leeway = 8,
+	Leeway = 10,
 	StartInterval = 0.3,
 	PlayerDetectionFlagExpireInterval = 4,
-	LeewayMultiplier = 1.3,
+	LeewayMultiplier = 1.25,
 	Enabled = true,
 }
 

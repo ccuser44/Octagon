@@ -19,10 +19,10 @@
 ]]
 
 local VerticalSpeed = {
-	Leeway = 6,
+	Leeway = 10,
 	StartInterval = 0.1,
 	PlayerDetectionFlagExpireInterval = 4,
-	LeewayMultiplier = 1.2,
+	LeewayMultiplier = 1.25,
 	Enabled = true,
 }
 

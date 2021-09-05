@@ -36,30 +36,29 @@ This detection works exactly like the above one, but for high vertical speed.
 **Sneak peak** of a physics detection:
 ```lua
 -- SilentsReplacement
--- HorizontalSpeed
+-- NoClip
 -- July 18, 2021
 
 --[[
-    HorizontalSpeed.Leeway : number
-    HorizontalSpeed.StartInterval : number
-    HorizontalSpeed.PlayerDetectionFlagExpireInterval : number
-    HorizontalSpeed.LeewayMultiplier : number
-    HorizontalSpeed.Enabled : boolean
+    NoClip.Leeway : number
+    NoClip.StartInterval : number
+    NoClip.PlayerDetectionFlagExpireInterval : number
+    NoClip.LeewayMultiplier : number
+    NoClip.Enabled : boolean
 
-	HorizontalSpeed.Cleanup() --> nil []
-	HorizontalSpeed.Init() --> nil []
-    HorizontalSpeed.Start(
-        detectionData : table
+	NoClip.Cleanup --> nil []
+	NoClip.Init() --> nil []
+    NoClip.Start(
+        detectionData : table 
         playerProfile : PlayerProfile
-        dt : number
     ) --> nil []
 ]]
 
-local HorizontalSpeed = {
-	Leeway = 8,
-	StartInterval = 0.3,
+local NoClip = {
+	Leeway = 2,
+	StartInterval = 0.1,
 	PlayerDetectionFlagExpireInterval = 4,
-	LeewayMultiplier = 1.3,
+	LeewayMultiplier = 1,
 	Enabled = true,
 }
 
@@ -156,9 +155,10 @@ This detection by default, tracks the primary part (HumanoidRootPart) of the pla
 --[[
     MultiToolEquip.Enabled : boolean
     
-	MultiToolEquip.Init() --> nil []
     MultiToolEquip.Start(playerProfile : PlayerProfile) --> nil []
     MultiToolEquip.Cleanup() --> nil []
+	MultiToolEquip.Init() --> nil []
+	MultiToolEquip.CleanupForPlayer() --> nil []
 ]]
 
 local MultiToolEquip = {
