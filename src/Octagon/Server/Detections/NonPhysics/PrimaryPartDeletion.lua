@@ -73,9 +73,7 @@ function PrimaryPartDeletion._initSignals()
 	InitMaidFor(PrimaryPartDeletion, PrimaryPartDeletion._maid, Signal.IsSignal)
 
 	PrimaryPartDeletion._onPlayerDetection:Connect(function(playerProfile)
-		if PlayerUtil.IsPlayerInGame(playerProfile.Player) then
-			playerProfile.Player:LoadCharacter()
-		end
+		PlayerUtil.LoadPlayerCharacter(playerProfile.Player)
 	end)
 
 	return nil

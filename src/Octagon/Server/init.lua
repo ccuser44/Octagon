@@ -44,6 +44,7 @@ local Signal = require(script.Parent.Shared.Signal)
 local Maid = require(script.Parent.Shared.Maid)
 local SharedConstants = require(script.Parent.Shared.SharedConstants)
 local DestroyAllMaids = require(script.Parent.Shared.DestroyAllMaids)
+local PlayerUtil = require(script.Parent.Shared.Util.PlayerUtil)
 local InitMaidFor = require(script.Parent.Shared.InitMaidFor)
 local Util = require(script.Parent.Shared.Util)
 
@@ -251,7 +252,7 @@ function Server.Start()
 				playerProfile.DetectionMaid:Cleanup()
 
 				if not Util.DoValidPlayerBodyPartsExist(player) then
-					player:LoadCharacter()
+					PlayerUtil.LoadPlayerCharacter(player)
 					return nil
 				end
 
