@@ -27,8 +27,7 @@ local Server = {
 		NonPhysics = {},
 	},
 
-	_areModulesInit = false,
-	_arePhysicsDetectionsInit = false,
+	_isInit = false,
 	_isStarted = false,
 	_isStopped = false,
 	_heartBeatScriptConnection = nil,
@@ -47,9 +46,6 @@ local SharedConstants = require(script.Parent.Shared.SharedConstants)
 local DestroyAllMaids = require(script.Parent.Shared.DestroyAllMaids)
 local InitMaidFor = require(script.Parent.Shared.InitMaidFor)
 local Util = require(script.Parent.Shared.Util)
-
-Server._maid = Maid.new()
-Server._onStop = Signal.new()
 
 function Server.AreMonitoringPlayerProfilesLeft()
 	return next(Server.MonitoringPlayerProfiles) ~= nil
@@ -218,7 +214,7 @@ function Server.Start()
 	assert(not Server.IsStarted(), "Can't start Octagon as Octagon is already started")
 
 	Server._isStarted = true
-	Server._init()
+	Server._initDetections()
 
 	print(("%s: Started"):format(SharedConstants.FormattedOutputMessages.Octagon.Log))
 
@@ -353,15 +349,17 @@ function Server._cleanup()
 end
 
 function Server._init()
-	if Server._initDetections() then
-		Server._initSignals()
-		PlayerProfileService.Init()
-	end
+	Server._isInit = true
+	Server._initModules()
+	Server._initSignals()
 
 	return nil
 end
 
 function Server._initSignals()
+	Server._maid = Maid.new()
+	Server._onStop = Signal.new()
+
 	InitMaidFor(Server, Server._maid, Signal.IsSignal)
 
 	-- Track newly loaded player profiles and start
@@ -421,8 +419,6 @@ function Server._cleanupDetections()
 end
 
 function Server._initDetections()
-	local areDetectionsInit = false
-
 	for _, module in ipairs(script.Detections.Physics:GetChildren()) do
 		local requiredModule = require(module)
 
@@ -430,10 +426,7 @@ function Server._initDetections()
 			continue
 		end
 
-		areDetectionsInit = true
 		requiredModule.Init()
-
-		Server._arePhysicsDetectionsInit = true
 		Server._detectionsInit.Physics[module.Name] = module
 	end
 
@@ -444,12 +437,11 @@ function Server._initDetections()
 			continue
 		end
 
-		areDetectionsInit = true
 		requiredModule.Init()
 		Server._detectionsInit.NonPhysics[module.Name] = module
 	end
 
-	return areDetectionsInit
+	return nil
 end
 
 function Server._heartBeatUpdate(dt, verticalSpeed, horizontalSpeed)
@@ -505,45 +497,38 @@ function Server._initSafeChecksForPlayerProfile(playerProfile)
 	local primaryPart = player.Character.PrimaryPart
 	local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
 
-	if Server._arePhysicsDetectionsInit then
-		playerProfile.Maid:AddTask(
-			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-				playerProfile:_updateAllDetectionPhysicsData("LastCFrame", primaryPart.CFrame)
-			end)
-		)
+	playerProfile.Maid:AddTask(
+		primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
+			playerProfile:_updateAllDetectionPhysicsData("LastCFrame", primaryPart.CFrame)
+		end)
+	)
 
-		playerProfile.Maid:AddTask(
-			primaryPart:GetPropertyChangedSignal("Parent"):Connect(function()
-				Server.TemporarilyBlacklistPlayerFromBeingMonitored(
-					player,
-					player.CharacterAdded
-				)
-			end)
-		)
+	playerProfile.Maid:AddTask(
+		primaryPart:GetPropertyChangedSignal("Parent"):Connect(function()
+			Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, player.CharacterAdded)
+		end)
+	)
 
-		playerProfile.Maid:AddTask(
-			primaryPart:GetPropertyChangedSignal("AssemblyLinearVelocity"):Connect(function()
-				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-					task.wait(primaryPart.AssemblyLinearVelocity.Magnitude / Workspace.Gravity)
-				end)
+	playerProfile.Maid:AddTask(
+		primaryPart:GetPropertyChangedSignal("AssemblyLinearVelocity"):Connect(function()
+			Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
+				task.wait(primaryPart.AssemblyLinearVelocity.Magnitude / Workspace.Gravity)
 			end)
-		)
+		end)
+	)
 
-		playerProfile.Maid:AddTask(
-			humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
-				if not humanoid.SeatPart then
-					return
-				end
+	playerProfile.Maid:AddTask(humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
+		if not humanoid.SeatPart then
+			return
+		end
 
-				-- Player is in seat, temporarily black list the player once they get out to
-				-- prevent horizontal / vertical speed false positive:
-				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-					humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
-					task.wait(1)
-				end)
-			end)
-		)
-	end
+		-- Player is in seat, temporarily black list the player once they get out to
+		-- prevent horizontal / vertical speed false positive:
+		Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
+			humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
+			task.wait(1)
+		end)
+	end))
 
 	return nil
 end
@@ -580,8 +565,6 @@ function Server._cleanupDetectionsForPlayer(player)
 end
 
 function Server._initModules()
-	Server._areModulesInit = true
-
 	for _, child in ipairs(script:GetChildren()) do
 		Server[child.Name] = child
 	end
@@ -595,8 +578,8 @@ function Server._initModules()
 	return nil
 end
 
-if not Server._areModulesInit then
-	Server._initModules()
+if not Server._isInit then
+	Server._init()
 end
 
 return Server

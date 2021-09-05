@@ -8,7 +8,7 @@
 	PlayerUtil.GetPlayerPolicyInfo(player : Player) --> table [policyInfo]
 	PlayerUtil.GetPlayerCountryRegion(player : Player) --> string [region code]
 	PlayerUtil.DoesPlayerOwnGamePass(playerUserId : number, gamePassId : number) --> boolean [DoesPlayerOwnGamePass]
-	PlayerUtil.GetPlayerFromInstance(instance : Instance) --> Player | nil []
+	PlayerUtil.GetPlayerFromInstance(instance : Instance ?) --> Player | nil []
 	PlayerUtil.IsPlayerGameOwner(player : Player) --> boolean [IsPlayerGameOwner]
 ]]
 
@@ -262,15 +262,9 @@ function PlayerUtil.GetPlayerCountryRegion(player)
 end
 
 function PlayerUtil.GetPlayerFromInstance(instance)
-	assert(
-		typeof(instance) == "Instance",
-		LocalConstants.ErrorMessages.InvalidArgument:format(
-			1,
-			"PlayerUtil.GetPlayerFromInstance()",
-			"Instance",
-			typeof(instance)
-		)
-	)
+	if typeof(instance) ~= "Instance" then
+		return nil
+	end
 
 	return Players:GetPlayerFromCharacter(instance.Parent)
 		or Players:GetPlayerFromCharacter(instance.Parent.Parent)

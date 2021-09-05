@@ -37,15 +37,6 @@ local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 
-NoClip._maid = Maid.new()
-NoClip._onPlayerDetection = Signal.new()
-
-function NoClip.Init()
-	NoClip._initSignals()
-
-	return nil
-end
-
 function NoClip.Start(detectionData, playerProfile, _)
 	local physicsData = detectionData.PhysicsData
 
@@ -58,6 +49,12 @@ end
 
 function NoClip.Cleanup()
 	DestroyAllMaids(NoClip)
+
+	return nil
+end
+
+function NoClip.Init()
+	NoClip._initSignals()
 
 	return nil
 end
@@ -113,6 +110,9 @@ function NoClip._isNoClipping(player, physicsData)
 end
 
 function NoClip._initSignals()
+	NoClip._maid = Maid.new()
+	NoClip._onPlayerDetection = Signal.new()
+
 	InitMaidFor(NoClip, NoClip._maid, Signal.IsSignal)
 
 	NoClip._onPlayerDetection:Connect(function(playerProfile, lastCFrame)

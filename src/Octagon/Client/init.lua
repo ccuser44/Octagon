@@ -15,7 +15,7 @@
 local Client = {
 	_isStarted = false,
 	_isStopped = false,
-	_areModulesInit = false,
+	_isInit = false,
 }
 
 local Players = game:GetService("Players")
@@ -29,11 +29,6 @@ local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 
 local LocalConstants = { MinPlayerHardGroundLandYVelocity = 145 }
-
-Client.OnPlayerFling = Signal.new()
-Client.OnPlayerHardGroundLand = Signal.new()
-Client._maid = Maid.new()
-Client._humanoidStateTrackerMaid = Maid.new()
 
 local localPlayer = Players.LocalPlayer
 
@@ -81,6 +76,8 @@ function Client.Stop()
 end
 
 function Client._init()
+	Client._isInit = true
+	Client._initModules()
 	Client._initSignals()
 
 	return nil
@@ -121,12 +118,10 @@ function Client._trackHumanoidState(character)
 end
 
 function Client._initModules()
-	Client._areModulesInit = true
-	
 	for _, child in ipairs(script:GetChildren()) do
 		Client[child.Name] = child
 	end
-
+     
 	for _, child in ipairs(script.Parent:GetChildren()) do
 		if child.Name ~= "Client" then
 			Client[child.Name] = child
@@ -137,6 +132,11 @@ function Client._initModules()
 end
 
 function Client._initSignals()
+	Client._maid = Maid.new()
+	Client.OnPlayerFling = Signal.new()
+	Client.OnPlayerHardGroundLand = Signal.new()
+	Client._humanoidStateTrackerMaid = Maid.new()
+
 	InitMaidFor(Client, Client._maid, Signal.IsSignal)
 
 	Client.OnPlayerFling:Connect(function()
@@ -151,9 +151,9 @@ function Client._initSignals()
 
 	return nil
 end
-
-if not Client._areModulesInit then
-	Client._initModules()
+ 
+if not Client._init then
+	Client._init()
 end
 
 return Client

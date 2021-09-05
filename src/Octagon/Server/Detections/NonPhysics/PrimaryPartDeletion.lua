@@ -5,9 +5,9 @@
 --[[
     PrimaryPartDeletion.Enabled : boolean
 
-	PrimaryPartDeletion.Init() --> nil []
     PrimaryPartDeletion.Start(playerProfile : PlayerProfile) --> nil []
     PrimaryPartDeletion.Cleanup() --> nil []
+	PrimaryPartDeletion.Init() --> nil []
 ]]
 
 local PrimaryPartDeletion = {
@@ -23,15 +23,6 @@ local Signal = require(Octagon.Shared.Signal)
 local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
-
-PrimaryPartDeletion._onPlayerDetection = Signal.new()
-PrimaryPartDeletion._maid = Maid.new()
-
-function PrimaryPartDeletion.Init()
-	PrimaryPartDeletion._initSignals()
-
-	return nil
-end
 
 function PrimaryPartDeletion.Start(playerProfile)
 	local player = playerProfile.Player
@@ -68,7 +59,16 @@ function PrimaryPartDeletion.Cleanup()
 	return nil
 end
 
+function PrimaryPartDeletion.Init()
+	PrimaryPartDeletion._initSignals()
+
+	return nil
+end
+
 function PrimaryPartDeletion._initSignals()
+	PrimaryPartDeletion._onPlayerDetection = Signal.new()
+	PrimaryPartDeletion._maid = Maid.new()
+
 	InitMaidFor(PrimaryPartDeletion, PrimaryPartDeletion._maid, Signal.IsSignal)
 
 	PrimaryPartDeletion._onPlayerDetection:Connect(function(playerProfile)

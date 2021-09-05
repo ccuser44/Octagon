@@ -9,8 +9,8 @@
     VerticalSpeed.LeewayMultiplier : number
     VerticalSpeed.Enabled : boolean
 
-	VerticalSpeed.Cleanup() --> []
 	VerticalSpeed.Init() --> nil []
+	VerticalSpeed.Cleanup() --> []
     VerticalSpeed.Start(
         detectionData : table
         playerProfile : PlayerProfile
@@ -33,15 +33,6 @@ local Signal = require(Octagon.Shared.Signal)
 local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
-
-VerticalSpeed._maid = Maid.new()
-VerticalSpeed._onPlayerDetection = Signal.new()
-
-function VerticalSpeed.Init()
-	VerticalSpeed._initSignals()
-
-	return nil
-end
 
 function VerticalSpeed.Start(detectionData, playerProfile, dt)
 	local character = playerProfile.Player.Character
@@ -82,9 +73,18 @@ function VerticalSpeed._calculateVerticalSpeed(currentPosition, lastPosition, dt
 	)
 end
 
+function VerticalSpeed.Init()
+	VerticalSpeed._initSignals()
+
+	return nil
+end
+
 function VerticalSpeed._initSignals()
+	VerticalSpeed._maid = Maid.new()
+	VerticalSpeed._onPlayerDetection = Signal.new()
+
 	InitMaidFor(VerticalSpeed, VerticalSpeed._maid, Signal.IsSignal)
-	
+
 	VerticalSpeed._onPlayerDetection:Connect(function(playerProfile, lastCFrame)
 		local player = playerProfile.Player
 		local primaryPart = player.Character.PrimaryPart

@@ -5,9 +5,9 @@
 --[[
     MultiToolEquip.Enabled : boolean
     
-	MultiToolEquip.Init() --> nil []
     MultiToolEquip.Start(playerProfile : PlayerProfile) --> nil []
     MultiToolEquip.Cleanup() --> nil []
+	MultiToolEquip.Init() --> nil []
 	MultiToolEquip.CleanupForPlayer() --> nil []
 ]]
 
@@ -24,16 +24,7 @@ local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 
 local LocalConstants = { MaxEquippedToolCount = 1 }
 
-MultiToolEquip._onPlayerDetection = Signal.new()
-MultiToolEquip._maid = Maid.new()
-
 local playerEquippedTools = {}
-
-function MultiToolEquip.Init()
-	MultiToolEquip._initSignals()
-
-	return nil
-end
 
 function MultiToolEquip.Start(playerProfile)
 	local player = playerProfile.Player
@@ -110,7 +101,16 @@ function MultiToolEquip.CleanupForPlayer(player)
 	return nil
 end
 
+function MultiToolEquip.Init()
+	MultiToolEquip._initSignals()
+
+	return nil
+end
+
 function MultiToolEquip._initSignals()
+	MultiToolEquip._onPlayerDetection = Signal.new()
+	MultiToolEquip._maid = Maid.new()
+
 	InitMaidFor(MultiToolEquip, MultiToolEquip._maid, Signal.IsSignal)
 
 	MultiToolEquip._onPlayerDetection:Connect(function(playerProfile)

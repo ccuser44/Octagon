@@ -15,8 +15,6 @@
 
 local PlayerProfileService = {
 	LoadedPlayerProfiles = {},
-	_areModulesInit = false,
-	_isInit = false,
 }
 
 local Octagon = script:FindFirstAncestor("Octagon")
@@ -26,11 +24,6 @@ local Maid = require(Octagon.Shared.Maid)
 local Util = require(Octagon.Shared.Util)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
-
-PlayerProfileService.OnPlayerProfileLoaded = Signal.new()
-PlayerProfileService.OnPlayerProfileDestroyed = Signal.new()
-PlayerProfileService.OnPlayerProfileInit = Signal.new()
-PlayerProfileService._maid = Maid.new()
 
 function PlayerProfileService.ArePlayerProfilesLoaded()
 	return next(PlayerProfileService.LoadedPlayerProfiles) ~= nil
@@ -44,9 +37,10 @@ function PlayerProfileService.DestroyLoadedPlayerProfiles()
 	return nil
 end
 
-function PlayerProfileService.Init()
+function PlayerProfileService._init()
 	PlayerProfileService._isInit = true
 	PlayerProfileService._initSignals()
+	PlayerProfileService._initModules()
 
 	return nil
 end
@@ -69,13 +63,10 @@ function PlayerProfileService.GetPlayerProfile(player)
 	)
 
 	local playerProfile = PlayerProfileService.LoadedPlayerProfiles[player]
- 
+
 	if playerProfile ~= nil then
 		return playerProfile
-	elseif
-		PlayerProfileService._isInit
-		and Util.IsPlayerSubjectToBeMonitored(player)
-	then
+	elseif PlayerProfileService._isInit and Util.IsPlayerSubjectToBeMonitored(player) then
 		return PlayerProfileService._waitForPlayerProfile(player)
 	end
 
@@ -105,9 +96,22 @@ function PlayerProfileService._waitForPlayerProfile(player)
 	return playerProfile
 end
 
+function PlayerProfileService._initModules()
+	for _, child in ipairs(script:GetChildren()) do
+		PlayerProfileService[child.Name] = child
+	end
+
+	return nil
+end
+
 function PlayerProfileService._initSignals()
+	PlayerProfileService._maid = Maid.new()
+	PlayerProfileService.OnPlayerProfileLoaded = Signal.new()
+	PlayerProfileService.OnPlayerProfileDestroyed = Signal.new()
+	PlayerProfileService.OnPlayerProfileInit = Signal.new()
+
 	InitMaidFor(PlayerProfileService, PlayerProfileService._maid, Signal.IsSignal)
-	PlayerProfileService._areSignalsInit = true
+	PlayerProfileService._initModules()
 
 	PlayerProfileService.OnPlayerProfileLoaded:Connect(function(playerProfile)
 		PlayerProfileService.LoadedPlayerProfiles[playerProfile.Player] = playerProfile
@@ -120,15 +124,8 @@ function PlayerProfileService._initSignals()
 	return nil
 end
 
-function PlayerProfileService._initModules()
-	PlayerProfileService._areModulesInit = true
-	PlayerProfileService.PlayerProfile = script.PlayerProfile
-
-	return nil
-end
-
-if not PlayerProfileService._areModulesInit then
-	PlayerProfileService._initModules()
+if not PlayerProfileService._isInit then
+	PlayerProfileService._init()
 end
 
 return PlayerProfileService

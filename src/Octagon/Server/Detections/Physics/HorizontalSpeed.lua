@@ -9,8 +9,8 @@
     HorizontalSpeed.LeewayMultiplier : number
     HorizontalSpeed.Enabled : boolean
 
-	HorizontalSpeed.Cleanup() --> nil []
 	HorizontalSpeed.Init() --> nil []
+	HorizontalSpeed.Cleanup() --> nil []
     HorizontalSpeed.Start(
         detectionData : table
         playerProfile : PlayerProfile
@@ -33,9 +33,6 @@ local Signal = require(Octagon.Shared.Signal)
 local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
-
-HorizontalSpeed._onPlayerDetection = Signal.new()
-HorizontalSpeed._maid = Maid.new()
 
 function HorizontalSpeed.Start(detectionData, playerProfile, dt)
 	-- Calculate average horizontal speed per mutliple frames and compare it
@@ -76,8 +73,11 @@ function HorizontalSpeed._calculateAverageSpeed(currentPosition, lastPosition, d
 end
 
 function HorizontalSpeed._initSignals()
+	HorizontalSpeed._onPlayerDetection = Signal.new()
+	HorizontalSpeed._maid = Maid.new()
+
 	InitMaidFor(HorizontalSpeed, HorizontalSpeed._maid, Signal.IsSignal)
-	
+
 	HorizontalSpeed._onPlayerDetection:Connect(function(playerProfile, lastCFrame)
 		local player = playerProfile.Player
 		local primaryPart = player.Character.PrimaryPart
