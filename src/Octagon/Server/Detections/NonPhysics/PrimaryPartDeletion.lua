@@ -19,6 +19,7 @@ local CollectionService = game:GetService("CollectionService")
 local Octagon = script:FindFirstAncestor("Octagon")
 local SharedConstants = require(Octagon.Shared.SharedConstants)
 local Util = require(Octagon.Shared.Util)
+local PlayerUtil = require(Octagon.Shared.Util.PlayerUtil)
 local Signal = require(Octagon.Shared.Signal)
 local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
@@ -72,7 +73,9 @@ function PrimaryPartDeletion._initSignals()
 	InitMaidFor(PrimaryPartDeletion, PrimaryPartDeletion._maid, Signal.IsSignal)
 
 	PrimaryPartDeletion._onPlayerDetection:Connect(function(playerProfile)
-		playerProfile.Player:LoadCharacter()
+		if PlayerUtil.IsPlayerInGame(playerProfile.Player) then
+			playerProfile.Player:LoadCharacter()
+		end
 	end)
 
 	return nil

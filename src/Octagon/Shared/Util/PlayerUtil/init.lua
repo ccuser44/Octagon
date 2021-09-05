@@ -10,6 +10,7 @@
 	PlayerUtil.DoesPlayerOwnGamePass(playerUserId : number, gamePassId : number) --> boolean [DoesPlayerOwnGamePass]
 	PlayerUtil.GetPlayerFromInstance(instance : Instance ?) --> Player | nil []
 	PlayerUtil.IsPlayerGameOwner(player : Player) --> boolean [IsPlayerGameOwner]
+	PlayerUtil.IsPlayerInGame(player : Player) --> boolean [IsPlayerInGame]
 ]]
 
 local PlayerUtil = {
@@ -292,6 +293,20 @@ function PlayerUtil.IsPlayerGameOwner(player)
 	end
 
 	return isPlayerGameOwner
+end
+
+function PlayerUtil.IsPlayerInGame(player)
+	assert(
+		typeof(player) == "Instance" and player:IsA("Player"),
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			1,
+			"PlayerUtil.IsPlayerInGame()",
+			"Player",
+			typeof(player)
+		)
+	)
+
+	return player:IsDescendantOf(Players)
 end
 
 return PlayerUtil
