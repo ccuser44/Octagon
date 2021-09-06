@@ -4,8 +4,9 @@
 
 --[[
 	PlayerUtil.ClearCaches() --> nil []
+	PlayerUtil.ClearPlayerCache(player : Player) --> nil []
 	PlayerUtil.GetPlayerGroupRankInGroup(player : Player, groupId : number) --> number [groupRank]
-	PlayerUtil.GetPlayerGroupRoleInGroup(player : Player, groupId : number) --> string [groupRole]
+	PlayerUtil.GetPlayerRoleInGroup(player : Player, groupId : number) --> string [groupRole]
 	PlayerUtil.IsPlayerInGroup(player : Player, groupId : number) --> boolean [IsPlayerInGroup]
 	PlayerUtil.GetPlayerPolicyInfo(player : Player) --> table [policyInfo]
 	PlayerUtil.GetPlayerCountryRegionCode(player : Player) --> string [region code]
@@ -21,16 +22,9 @@
 ]]
 
 local PlayerUtil = {
-	_playerGroupRanksCache = {},
-	_playerGroupRolesCache = {},
-	_playerPoliciesCache = {},
-	_playerGamePassesCache = {},
-	_playerCountryRegionsCache = {},
-	_playerOnlineFriendsDataCache = {},
-	_playerOnlineFriendsCache = {},
-	_playerGroupsCache = {},
-	_playerFriendsCache = {},
-	_playerStreamsCache = {},
+	PlayerStreamsCache = {},
+	PlayerFriendsCache = {},
+	_isInit = false,
 }
 
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -73,6 +67,26 @@ function PlayerUtil.ClearCaches()
 	return nil
 end
 
+function PlayerUtil.ClearPlayerCache(player)
+	assert(
+		typeof(player) == "Instance" and player:IsA("Player"),
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			1,
+			"PlayerUtil.ClearPlayerCache()",
+			"Player",
+			typeof(player)
+		)
+	)
+
+	for _, value in pairs(PlayerUtil) do
+		if typeof(value) == "table" and value[player.UserId] then
+			value[player.UserId] = nil
+		end
+	end
+
+	return nil
+end
+
 function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 	assert(
 		typeof(player) == "Instance" and player:IsA("Player"),
@@ -94,12 +108,6 @@ function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerGroupRanksCache[player.UserId]
-
-	if cachedResult and cachedResult[groupId] ~= nil then
-		return cachedResult[groupId]
-	end
-
 	local wasSuccessFull, response = RetryPcall(
 		LocalConstants.MaxFailedPcallTries,
 		LocalConstants.FailedPcallRetryInterval,
@@ -114,10 +122,6 @@ function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.GetPlayerGroupRankInGroup()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.DefaultPlayerGroupRank
-	else
-		PlayerUtil._playerGroupRanksCache[player.UserId] = PlayerUtil._playerGroupRanksCache[player.UserId]
-			or {}
-		PlayerUtil._playerGroupRanksCache[player.UserId][groupId] = response
 	end
 
 	return response
@@ -144,12 +148,6 @@ function PlayerUtil.GetPlayerRoleInGroup(player, groupId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerGroupRolesCache[player.UserId]
-
-	if (cachedResult and cachedResult[groupId]) ~= nil then
-		return cachedResult[groupId]
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		player.GetRoleInGroup,
 		player,
@@ -159,10 +157,6 @@ function PlayerUtil.GetPlayerRoleInGroup(player, groupId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.GetPlayerRoleInGroup()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.DefaultPlayerGroupRole
-	else
-		PlayerUtil._playerGroupRolesCache[player.UserId] = PlayerUtil._playerGroupRolesCache[player.UserId]
-			or {}
-		PlayerUtil._playerGroupRolesCache[player.UserId][groupId] = response
 	end
 
 	return response
@@ -179,12 +173,6 @@ function PlayerUtil.GetPolicyInfoForPlayer(player)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerPoliciesCache[player.UserId]
-
-	if cachedResult ~= nil then
-		return cachedResult
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		PolicyService.GetPolicyInfoForPlayerAsync,
 		PolicyService,
@@ -194,8 +182,6 @@ function PlayerUtil.GetPolicyInfoForPlayer(player)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.GetPolicyInfoForPlayer()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.DefaultPlayerPolicyInfo
-	else
-		PlayerUtil._playerPoliciesCache[player.UserId] = response
 	end
 
 	return response
@@ -222,12 +208,6 @@ function PlayerUtil.DoesPlayerOwnGamePass(playerUserId, gamePassId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerPoliciesCache[playerUserId]
-
-	if cachedResult and cachedResult[gamePassId] ~= nil then
-		return cachedResult[gamePassId]
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		MarketplaceService.UserOwnsGamePassAsync,
 		MarketplaceService,
@@ -238,10 +218,6 @@ function PlayerUtil.DoesPlayerOwnGamePass(playerUserId, gamePassId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.DoesPlayerOwnGamePass()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.DoesPlayerOwnGamePassByDefault
-	else
-		PlayerUtil._playerGamePassesCache[playerUserId] = PlayerUtil._playerGamePassesCache[playerUserId]
-			or {}
-		PlayerUtil._playerGamePassesCache[playerUserId][gamePassId] = response
 	end
 
 	return response
@@ -258,12 +234,6 @@ function PlayerUtil.GetPlayerCountryRegionCode(player)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerCountryRegionsCache[player.UserId]
-
-	if cachedResult ~= nil then
-		return cachedResult
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		LocalizationService.GetCountryRegionForPlayerAsync,
 		LocalizationService,
@@ -274,8 +244,6 @@ function PlayerUtil.GetPlayerCountryRegionCode(player)
 		warn(("[PlayerUtil.GetPlayerCountryRegionCode()]: Failed. Error: %s"):format(response))
 
 		response = LocalConstants.DefaultPlayerCountryRegionCode
-	else
-		PlayerUtil._playerCountryRegionsCache[player.UserId] = response
 	end
 
 	return response
@@ -326,6 +294,9 @@ function PlayerUtil.LoadPlayerCharacter(player)
 		)
 	)
 
+	-- The recommended way to load a player's character is to first wait for their character's appearance to load,
+	-- told by a Roblox engineer:
+
 	if not player:HasAppearanceLoaded() then
 		player.CharacterAppearanceLoaded:Wait()
 	end
@@ -346,7 +317,7 @@ function PlayerUtil.GetPlayerFriends(playerUserId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerFriendsCache[playerUserId]
+	local cachedResult = PlayerUtil.PlayerFriendsCache[playerUserId]
 
 	if cachedResult ~= nil then
 		return cachedResult
@@ -361,7 +332,7 @@ function PlayerUtil.GetPlayerFriends(playerUserId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.GetPlayerFriends()]: Failed. Error: %s"):format(response))
 	else
-		PlayerUtil._playerFriendsCache[playerUserId] = response
+		PlayerUtil.PlayerFriendsCache[playerUserId] = response
 	end
 
 	return response
@@ -391,12 +362,6 @@ function PlayerUtil.GetPlayerOnlineFriendsData(player, maxFriends)
 		maxFriends = math.clamp(maxFriends, 0, LocalConstants.MaxPlayerFriends)
 	end
 
-	local cachedResult = PlayerUtil._playerOnlineFriendsDataCache[player.UserId]
-
-	if cachedResult and cachedResult[maxFriends] ~= nil then
-		return cachedResult[maxFriends]
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		player.GetFriendsOnline,
 		player,
@@ -405,10 +370,6 @@ function PlayerUtil.GetPlayerOnlineFriendsData(player, maxFriends)
 
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.GetPlayerOnlineFriendsData()]: Failed. Error: %s"):format(response))
-	else
-		PlayerUtil._playerOnlineFriendsDataCache[player.UserId] = PlayerUtil._playerOnlineFriendsDataCache[player.UserId]
-			or {}
-		PlayerUtil._playerOnlineFriendsDataCache[player.UserId][maxFriends] = response
 	end
 
 	return response
@@ -435,12 +396,6 @@ function PlayerUtil.IsPlayerInGroup(player, groupId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerGroupsCache[player.UserId]
-
-	if cachedResult and cachedResult[groupId] ~= nil then
-		return cachedResult[groupId]
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		player.IsInGroup,
 		player,
@@ -450,10 +405,6 @@ function PlayerUtil.IsPlayerInGroup(player, groupId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.IsPlayerInGroup()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.IsPlayerInGroupByDefault
-	else
-		PlayerUtil._playerGroupsCache[player.UserId] = PlayerUtil._playerGroupsCache[player.UserId]
-			or {}
-		PlayerUtil._playerGroupsCache[player.UserId][groupId] = response
 	end
 
 	return response
@@ -480,12 +431,6 @@ function PlayerUtil.IsPlayerFriendsWith(player, userId)
 		)
 	)
 
-	local cachedResult = PlayerUtil._playerOnlineFriendsCache[player.UserId]
-
-	if cachedResult and cachedResult[userId] ~= nil then
-		return cachedResult[userId]
-	end
-
 	local wasSuccessFull, response = RetryPcall(nil, nil, {
 		player.IsFriendsWith,
 		player,
@@ -495,10 +440,6 @@ function PlayerUtil.IsPlayerFriendsWith(player, userId)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.IsPlayerFriendsWith()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.IsPlayerFriendsWithUserIdByDefault
-	else
-		PlayerUtil._playerOnlineFriendsCache[player.UserId] = PlayerUtil._playerOnlineFriendsCache[player.UserId]
-			or {}
-		PlayerUtil._playerOnlineFriendsCache[player.UserId][userId] = response
 	end
 
 	return response
@@ -537,7 +478,7 @@ function PlayerUtil.RequestStreamAroundAsync(player, position, timeOut)
 
 	timeOut = timeOut or LocalConstants.DefaultStreamAroundTimeout
 
-	local cachedResult = PlayerUtil._playerStreamsCache[player.UserId]
+	local cachedResult = PlayerUtil.PlayerStreamsCache[player.UserId]
 
 	if cachedResult and cachedResult[position.Magnitude] ~= nil then
 		return nil
@@ -553,12 +494,40 @@ function PlayerUtil.RequestStreamAroundAsync(player, position, timeOut)
 	if not wasSuccessFull then
 		warn(("[PlayerUtil.RequestStreamAroundAsync()]: Failed. Error: %s"):format(response))
 	else
-		PlayerUtil._playerStreamsCache[player.UserId] = PlayerUtil._playerStreamsCache[player.UserId]
-			or {}
-		PlayerUtil._playerStreamsCache[player.UserId][position.Magnitude] = true
+		PlayerUtil.PlayerStreamsCache[player.UserId][position.Magnitude] = true
 	end
 
 	return nil
+end
+
+function PlayerUtil._playerAdded(player)
+	PlayerUtil.PlayerStreamsCache[player.UserId] = {}
+
+	return nil
+end
+
+function PlayerUtil._playerRemoved(player)
+	PlayerUtil.ClearPlayerCache(player)
+
+	return nil
+end
+
+function PlayerUtil._init()
+	PlayerUtil._isInit = true
+	Players.PlayerAdded:Connect(PlayerUtil._playerAdded)
+	Players.PlayerRemoving:Connect(PlayerUtil._playerRemoved)
+
+	-- Get current players in game if the script runs late due to deferred signal behaviour. Roblox hasn't
+	-- released a fix for this incoming behavior:
+	for _, player in ipairs(Players:GetPlayers()) do
+		task.spawn(PlayerUtil._playerAdded, player)
+	end
+
+	return nil
+end
+
+if not PlayerUtil._isInit then
+	PlayerUtil._init()
 end
 
 return PlayerUtil
