@@ -47,7 +47,6 @@ function Client.Start()
 	print(("%s: Started"):format(SharedConstants.FormattedOutputMessages.Octagon.Log))
 
 	Client._isStarted = true
-	Client._init()
 	Client._trackHumanoidState(localPlayer.Character or localPlayer.CharacterAdded:Wait())
 
 	-- Track humanoid state again whenever a new
@@ -121,7 +120,7 @@ function Client._initModules()
 	for _, child in ipairs(script:GetChildren()) do
 		Client[child.Name] = child
 	end
-     
+
 	for _, child in ipairs(script.Parent:GetChildren()) do
 		if child.Name ~= "Client" then
 			Client[child.Name] = child
@@ -151,8 +150,8 @@ function Client._initSignals()
 
 	return nil
 end
- 
-if not Client._init then
+
+if not Client._isInit then
 	Client._init()
 end
 
