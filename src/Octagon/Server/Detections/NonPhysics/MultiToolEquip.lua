@@ -120,10 +120,9 @@ function MultiToolEquip._initSignals()
 
 		-- Parent all equipped tools back to the player's backpack:
 		for _, tool in pairs(playerEquippedToolsData.Tools) do
-			task.wait()
-
 			-- Handle edge case where the tool is immediately destroyed after being parented:
 			if tool.Parent == player.Character then
+				task.wait()
 				tool.Parent = player.Backpack
 			end
 		end

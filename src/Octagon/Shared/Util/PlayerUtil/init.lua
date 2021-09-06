@@ -480,7 +480,7 @@ function PlayerUtil.RequestStreamAroundAsync(player, position, timeOut)
 
 	local cachedResult = PlayerUtil.PlayerStreamsCache[player.UserId]
 
-	if cachedResult and cachedResult[position.Magnitude] ~= nil then
+	if (cachedResult and cachedResult[position.Magnitude]) ~= nil then
 		return nil
 	end
 
