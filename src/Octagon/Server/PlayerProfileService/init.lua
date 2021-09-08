@@ -8,6 +8,7 @@
     PlayerProfileService.OnPlayerProfileInit : Signal (playerProfile : PlayerProfile) 
     PlayerProfileService.LoadedPlayerProfiles : table
 
+	PlayerProfileService.Init() --> nil []
     PlayerProfileService.GetPlayerProfile(player : Player) --> PlayerProfile | nil []
     PlayerProfileService.ArePlayerProfilesLoaded() --> boolean [ArePlayerProfilesLoaded]
     PlayerProfileService.DestroyLoadedPlayerProfiles() --> nil []
@@ -36,9 +37,8 @@ function PlayerProfileService.DestroyLoadedPlayerProfiles()
 
 	return nil
 end
-
-function PlayerProfileService._init()
-	PlayerProfileService._isInit = true
+ 
+function PlayerProfileService.Init()
 	PlayerProfileService._initSignals()
 	PlayerProfileService._initModules()
 
@@ -122,10 +122,6 @@ function PlayerProfileService._initSignals()
 	end)
 
 	return nil
-end
-
-if not PlayerProfileService._isInit then
-	PlayerProfileService._init()
 end
 
 return PlayerProfileService
