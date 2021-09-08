@@ -274,6 +274,13 @@ function Server.Start()
 					return nil
 				end
 
+				playerProfile.DetectionMaid:AddTask(character.Humanoid.Died:Connect(function()
+					Server.TemporarilyBlacklistPlayerFromBeingMonitored(
+						player,
+						player.CharacterAdded
+					)
+				end))
+
 				-- Setup a tag to know if a certain part is a primary part if
 				-- character.PrimaryPart is nil. This is used in primary part deletion
 				-- where we can't determine if the part deleted was a primary part or not:
@@ -281,12 +288,14 @@ function Server.Start()
 					character.PrimaryPart,
 					SharedConstants.Tags.PrimaryPart
 				)
+ 
+				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
+					Server._initSafeChecksForPlayerProfile(playerProfile)
+					Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
+					playerProfile:SetDeinitTag()
+					playerProfile:Init(script.Detections.Physics:GetChildren())
+				end)
 
-				Server._initSafeChecksForPlayerProfile(playerProfile)
-				Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
-				playerProfile:SetDeinitTag()
-				playerProfile:Init(script.Detections.Physics:GetChildren())
-  
 				return nil
 			end
 
