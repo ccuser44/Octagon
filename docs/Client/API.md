@@ -57,10 +57,10 @@ Octagon.AllowPlayerBouncing() --> nil []
 
 Allows the local player to bounce high up after falling. By default, Octagon will not allow the player to bounce high up in the air after jumping.
 
-### `Octagon.PreventBouncing()`
+### `Octagon.PreventPlayerBouncing()`
 
 ```lua
-Octagon.PreventBouncing() --> nil []
+Octagon.PreventPlayerBouncing() --> nil []
 ```
 
 Stops the local player from bouncing high up after falling.
