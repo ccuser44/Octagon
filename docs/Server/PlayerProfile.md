@@ -24,7 +24,7 @@ Returns a boolean indicating if `self` is a player profile.
     Never cleanup any maids or signals, this is done by Octagon automatically whenever the player associated to a player profile leaves the game, i.e the profile is destroyed.
 
 !!!note
-    All the signals and maids mentioned down below will be destroyed once the profile is destroyed. Along with the `Player` member, that will be `nil` once the profile has been destroyed in order to prevent a memory leak.
+    All the signals and maids mentioned down below will be automatically destroyed once the profile is destroyed. Along with the `Player` member, that will be `nil` once the profile has been destroyed in order to prevent a memory leak.
 
 ### `PlayerProfile.Player`
 
@@ -48,7 +48,7 @@ A reference to a maid object, used for cleaning up signals.
 PlayerProfile.DetectionMaid : Maid
 ```
 
-A reference to a maid object, used for cleaning up signals regarding non physics detections.
+A reference to a maid object, used for cleaning up signals / connections regarding non physics detections. This maid object is cleaned up every time the player respawns.
 
 ### `PlayerProfile.PhysicsDetectionFlagsHistory`
 
@@ -128,7 +128,9 @@ end)
 ```
 
 !!!warning
-    This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
+    - This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
+
+    - Don't pass in a negative increment value.
 
 ### `PlayerProfile:DecrementPhysicsThreshold()`
 
