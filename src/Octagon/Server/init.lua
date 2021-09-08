@@ -286,12 +286,7 @@ function Server.Start()
 				Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
 				playerProfile:SetDeinitTag()
 				playerProfile:Init(script.Detections.Physics:GetChildren())
-
-				-- Handle edge:
-				if not Server.MonitoringPlayerProfiles[player] then
-					Server.MonitoringPlayerProfiles[player] = playerProfile
-				end
-
+  
 				return nil
 			end
 
