@@ -78,7 +78,7 @@ function Util.IsPlayerSubjectToBeMonitored(player)
 					):format(groupId)
 				)
 
-				local playerGroupRank = PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
+				local playerGroupRank = PlayerUtil.GetPlayerRankInGroup(player, groupId)
 
 				isPlayerBlackListedFromBeingMonitored = playerGroupRank
 						== requiredPlayerGroupRank

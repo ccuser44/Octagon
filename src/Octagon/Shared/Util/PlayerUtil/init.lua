@@ -5,7 +5,10 @@
 --[[
 	PlayerUtil.ClearCaches() --> nil []
 	PlayerUtil.ClearPlayerCache(player : Player) --> nil []
-	PlayerUtil.GetPlayerGroupRankInGroup(player : Player, groupId : number) --> number [groupRank]
+	PlayerUtil.SetPlayerNetworkOwner(player : Player) --> nil []
+	PlayerUtil.GetPlayerNetworkOwner(player : Player) --> player | nil [PlayerNetworkOwner]
+	PlayerUtil.GetPlayerSeatPart(player : Player) --> Seat | VehicleSeat | nil [PlayerSeatPart]
+	PlayerUtil.GetPlayerRankInGroup(player : Player, groupId : number) --> number [groupRank]
 	PlayerUtil.GetPlayerRoleInGroup(player : Player, groupId : number) --> string [groupRole]
 	PlayerUtil.IsPlayerInGroup(player : Player, groupId : number) --> boolean [IsPlayerInGroup]
 	PlayerUtil.GetPlayerPolicyInfo(player : Player) --> table [policyInfo]
@@ -87,12 +90,12 @@ function PlayerUtil.ClearPlayerCache(player)
 	return nil
 end
 
-function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
+function PlayerUtil.GetPlayerRankInGroup(player, groupId)
 	assert(
 		typeof(player) == "Instance" and player:IsA("Player"),
 		LocalConstants.ErrorMessages.InvalidArgument:format(
 			1,
-			"PlayerUtil.GetPlayerGroupRankInGroup()",
+			"PlayerUtil.GetPlayerRankInGroup()",
 			"Player",
 			typeof(player)
 		)
@@ -102,7 +105,7 @@ function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 		typeof(groupId) == "number",
 		LocalConstants.ErrorMessages.InvalidArgument:format(
 			2,
-			"PlayerUtil.GetPlayerGroupRankInGroup()",
+			"PlayerUtil.GetPlayerRankInGroup()",
 			"number",
 			typeof(groupId)
 		)
@@ -120,7 +123,7 @@ function PlayerUtil.GetPlayerGroupRankInGroup(player, groupId)
 	)
 
 	if not wasSuccessFull then
-		warn(("[PlayerUtil.GetPlayerGroupRankInGroup()]: Failed. Error: %s"):format(response))
+		warn(("[PlayerUtil.GetPlayerRankInGroup()]: Failed. Error: %s"):format(response))
 		response = LocalConstants.DefaultPlayerGroupRank
 	end
 
@@ -272,10 +275,8 @@ function PlayerUtil.IsPlayerGameOwner(player)
 	local isPlayerGameOwner = nil
 
 	if game.CreatorType == Enum.CreatorType.Group then
-		isPlayerGameOwner = select(
-			2,
-			PlayerUtil.GetPlayerGroupRankInGroup(player, game.CreatorId)
-		) == LocalConstants.OwnerGroupRank
+		isPlayerGameOwner = select(2, PlayerUtil.GetPlayerRankInGroup(player, game.CreatorId))
+			== LocalConstants.OwnerGroupRank
 	else
 		isPlayerGameOwner = player.UserId == game.CreatorId
 	end
@@ -304,6 +305,21 @@ function PlayerUtil.LoadPlayerCharacter(player)
 	player:LoadCharacter()
 
 	return nil
+end
+
+function PlayerUtil.GetPlayerSeatPart(player)
+	assert(
+		typeof(player) == "Instance" and player:IsA("Player"),
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			1,
+			"PlayerUtil.GetPlayerSeatPart()",
+			"Player",
+			typeof(player)
+		)
+	)
+	local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+
+	return humanoid and humanoid.SeatPart or nil
 end
 
 function PlayerUtil.GetPlayerFriends(playerUserId)
@@ -336,6 +352,59 @@ function PlayerUtil.GetPlayerFriends(playerUserId)
 	end
 
 	return response
+end
+
+function PlayerUtil.GetPlayerNetworkOwner(player)
+	assert(
+		typeof(player) == "Instance" and player:IsA("Player"),
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			1,
+			"PlayerUtil.GetPlayerNetworkOwner()",
+			"Player",
+			typeof(player)
+		)
+	)
+
+	if not player.Character or not player.Character.PrimaryPart then
+		return nil
+	end
+
+	return player.Character.PrimaryPart:GetNetworkOwner()
+end
+
+function PlayerUtil.SetPlayerNetworkOwner(player, networkOwner)
+	assert(
+		typeof(player) == "Instance" and player:IsA("Player"),
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			1,
+			"PlayerUtil.SetPlayerNetworkOwner()",
+			"Player",
+			typeof(player)
+		)
+	)
+
+	assert(
+		networkOwner == player or networkOwner == nil,
+		LocalConstants.ErrorMessages.InvalidArgument:format(
+			2,
+			"PlayerUtil.SetPlayerNetworkOwner()",
+			"Player or nil",
+			typeof(networkOwner)
+		)
+	)
+
+	if not player.Character or not player.Character.PrimaryPart then
+		return nil
+	end
+
+	local canSetNetworkOwnership, response =
+		player.Character.PrimaryPart:CanSetNetworkOwnership()
+
+	if canSetNetworkOwnership then
+		player.Character.PrimaryPart:SetNetworkOwner(networkOwner)
+	else
+		warn(("[PlayerUtil.SetPlayerNetworkOwner()]: Failed. Error: %s"):format(response))
+	end
 end
 
 function PlayerUtil.GetPlayerOnlineFriendsData(player, maxFriends)
