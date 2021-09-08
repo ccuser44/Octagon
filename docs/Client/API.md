@@ -5,21 +5,20 @@
 
 ## Octagon
 
-### `Octagon.OnPlayerFling`
-```lua
-Octagon.OnPlayerFling : Signal ()
-```
-
-A signal which is fired whenever the player is flinged (when hit by a fast moving object). 
-
 ### `Octagon.OnPlayerHardGroundLand`
+
 ```lua
 Octagon.OnPlayerHardGroundLand : Signal ()
 ```
 
 A signal which is fired whenever the player lands on a ground in a "hard way" such that they are likely to bounce back. 
 
+!!!tip
+    Octagon by default will stop the player from bouncing high up. It is recommended not to
+    alter that behavoiur through this signal.
+
 ### `Octagon.Start()`
+
 ```lua 
 Octagon.Start() --> nil []
 ```
@@ -49,3 +48,19 @@ Octagon.Stop() --> nil []
 ```
 
 Cleans up all maids in use.
+
+### `Octagon.AllowPlayerBouncing()`
+
+```lua
+Octagon.AllowPlayerBouncing() --> nil []
+```
+
+Allows the local player to bounce high up after falling. By default, Octagon will not allow the player to bounce high up in the air after jumping.
+
+### `Octagon.PreventBouncing()`
+
+```lua
+Octagon.PreventBouncing() --> nil []
+```
+
+Stops the local player from bouncing high up after falling.
