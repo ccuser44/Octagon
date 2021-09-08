@@ -27,6 +27,7 @@ local Server = {
 		NonPhysics = {},
 	},
 
+	_playerProfilesTemporarilyBlacklistedFromBeingMonitored = {},
 	_isInit = false,
 	_isStarted = false,
 	_isStopped = false,
@@ -34,12 +35,11 @@ local Server = {
 }
 
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 
 local PlayerProfileService = require(script.PlayerProfileService)
-local PlayerProfile = require(PlayerProfileService.PlayerProfile)
+local PlayerProfile = require(script.PlayerProfileService.PlayerProfile)
 local Signal = require(script.Parent.Shared.Signal)
 local Maid = require(script.Parent.Shared.Maid)
 local SharedConstants = require(script.Parent.Shared.SharedConstants)
@@ -47,6 +47,25 @@ local DestroyAllMaids = require(script.Parent.Shared.DestroyAllMaids)
 local PlayerUtil = require(script.Parent.Shared.Util.PlayerUtil)
 local InitMaidFor = require(script.Parent.Shared.InitMaidFor)
 local Util = require(script.Parent.Shared.Util)
+local PhysicsThreshold = require(script.PhysicsThreshold)
+local VerticalSpeed = require(script.Detections.Physics.VerticalSpeed)
+local HorizontalSpeed = require(script.Detections.Physics.HorizontalSpeed)
+
+local LocalConstants = {
+	AdditionalSeatOccupantChangeMonitorBlacklistInterval = 1,
+}
+
+setmetatable(Server.MonitoringPlayerProfiles, {
+	__newindex = function(self, key, value)
+		rawset(self, key, value)
+
+		if not Server._isHeartBeatUpdateRunning() then
+			Server._startHeartBeatUpdate()
+		end
+
+		return nil
+	end,
+})
 
 function Server.AreMonitoringPlayerProfilesLeft()
 	return next(Server.MonitoringPlayerProfiles) ~= nil
@@ -85,20 +104,19 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 		)
 	)
 
+	table.insert(Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored, playerProfile)
 	Server.MonitoringPlayerProfiles[player] = nil
 
-	if Server._heartBeatScriptConnection and Server._heartBeatScriptConnection.Connected then
-		if not Server.AreMonitoringPlayerProfilesLeft() then
-			-- This player that is temporary black listed, is the only current
-			-- player that is being monitored, it's safe to disconnect the heartbeat
-			-- connection:
-			Server._heartBeatScriptConnection:Disconnect()
-		end
+	if Server._isHeartBeatUpdateRunning() and not Server.AreMonitoringPlayerProfilesLeft() then
+		-- This player that is temporary black listed, is the only current
+		-- player that is being monitored, it's safe to stop the heartbeat
+		-- update:
+		Server._stopHeartBeatUpdate()
 	end
 
 	local onStopConnection = nil
 	onStopConnection = Server._onStop:Connect(function()
-		Server._setPlayerPrimaryNetworkOwner(player)
+		PlayerUtil.SetPlayerNetworkOwner(player, player)
 	end)
 
 	task.spawn(function()
@@ -113,29 +131,29 @@ function Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, value)
 			task.wait(value)
 		end
 
+		table.remove(
+			Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored,
+			table.find(
+				Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored,
+				playerProfile
+			)
+		)
 		onStopConnection:Disconnect()
 
-		if playerProfile:IsDestroyed() or Server.IsStopped() then
+		if
+			playerProfile:IsDestroyed()
+			or Server.IsStopped()
+			or not Util.DoValidPlayerBodyPartsExist(player)
+		then
 			return nil
 		end
 
-		Server.MonitoringPlayerProfiles[player] = playerProfile
-
-		if not Util.DoValidPlayerBodyPartsExist(player) then
-			return nil
-		end
-
-		playerProfile:_updateAllDetectionPhysicsData(
+		playerProfile:UpdateAllDetectionPhysicsData(
 			"LastCFrame",
 			player.Character.PrimaryPart.CFrame
 		)
 
-		if
-			Server._heartBeatScriptConnection
-			and not Server._heartBeatScriptConnection.Connected
-		then
-			Server._heartBeatScriptConnection = Server._startHeartBeatUpdate()
-		end
+		Server.MonitoringPlayerProfiles[player] = playerProfile
 	end)
 
 	return nil
@@ -236,7 +254,7 @@ function Server.Start()
 			local playerProfile = PlayerProfile.new(player)
 
 			playerProfile.OnPhysicsDetectionFlagExpire:Connect(function()
-				Server._setPlayerPrimaryNetworkOwner(player)
+				PlayerUtil.SetPlayerNetworkOwner(player, player)
 			end)
 
 			playerProfile.OnPhysicsDetectionFlag:Connect(function()
@@ -249,6 +267,7 @@ function Server.Start()
 			end)
 
 			local function CharacterAdded(character)
+				playerProfile.ThresholdUpdateMaid:Cleanup()
 				playerProfile.DetectionMaid:Cleanup()
 
 				if not Util.DoValidPlayerBodyPartsExist(player) then
@@ -267,7 +286,12 @@ function Server.Start()
 				Server._initSafeChecksForPlayerProfile(playerProfile)
 				Server._startNonPhysicsDetectionsForPlayerProfile(playerProfile)
 				playerProfile:SetDeinitTag()
-				playerProfile:Init(Server._detectionsInit.Physics)
+				playerProfile:Init(script.Detections.Physics:GetChildren())
+
+				-- Handle edge:
+				if not Server.MonitoringPlayerProfiles[player] then
+					Server.MonitoringPlayerProfiles[player] = playerProfile
+				end
 
 				return nil
 			end
@@ -287,6 +311,13 @@ function Server.Start()
 					table.find(Server.BlacklistedPlayers, player)
 				)
 			else
+				table.remove(
+					Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored,
+					table.find(
+						Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored,
+						playerProfile
+					)
+				)
 				playerProfile:Destroy()
 				Server._cleanupDetectionsForPlayer(player)
 			end
@@ -333,20 +364,16 @@ end
 function Server._cleanup()
 	Server.BlacklistedPlayers = {}
 
-	for _, playerProfile in pairs(PlayerProfileService.LoadedPlayerProfiles) do
-		local activePhysicsDetectionFlag = playerProfile:GetCurrentActivePhysicsDetectionFlag()
-		if activePhysicsDetectionFlag ~= nil then
-			playerProfile.DetectionData[activePhysicsDetectionFlag].FlagExpireDt = 0
-			playerProfile.OnPhysicsDetectionFlagExpire:Fire()
-		end
-	end
-
 	PlayerProfileService.DestroyLoadedPlayerProfiles()
 	PlayerProfileService.Cleanup()
 	Server._cleanupDetections()
 	DestroyAllMaids(Server)
 
 	return nil
+end
+
+function Server._isHeartBeatUpdateRunning()
+	return Server._heartBeatScriptConnection and Server._heartBeatScriptConnection.Connected
 end
 
 function Server._init()
@@ -370,48 +397,97 @@ function Server._initSignals()
 	PlayerProfileService.OnPlayerProfileInit:Connect(function(playerProfile)
 		Server.MonitoringPlayerProfiles[playerProfile.Player] = playerProfile
 
-		if
-			Server._heartBeatScriptConnection
-			and Server._heartBeatScriptConnection.Connected
-		then
+		if Server._isHeartBeatUpdateRunning() then
 			return
 		end
 
-		Server._heartBeatScriptConnection = Server._startHeartBeatUpdate()
+		Server._startHeartBeatUpdate()
 	end)
 
 	PlayerProfileService.OnPlayerProfileDestroyed:Connect(function(player)
 		Server.MonitoringPlayerProfiles[player] = nil
 
-		if Server.AreMonitoringPlayerProfilesLeft() then
+		if
+			Server.AreMonitoringPlayerProfilesLeft()
+			and #Server._playerProfilesTemporarilyBlacklistedFromBeingMonitored == 0
+		then
 			return
 		end
 
-		if
-			Server._heartBeatScriptConnection and Server._heartBeatScriptConnection.Connected
-		then
-			Server._heartBeatScriptConnection:Disconnect()
+		if Server._isHeartBeatUpdateRunning() then
+			Server._stopHeartBeatUpdate()
 		end
 	end)
 
-	if PlayerProfileService.ArePlayerProfilesLoaded() then
-		Server._heartBeatScriptConnection = Server._startHeartBeatUpdate()
+	if
+		PlayerProfileService.ArePlayerProfilesLoaded()
+		and not Server._isHeartBeatUpdateRunning()
+	then
+		Server._startHeartBeatUpdate()
 	end
 
 	return nil
 end
 
 function Server._startHeartBeatUpdate()
-	return Server._maid:AddTask(RunService.Heartbeat:Connect(function(dt)
-		Server._heartBeatUpdate(
-			dt,
-			script.Detections.Physics.VerticalSpeed,
-			script.Detections.Physics.HorizontalSpeed
-		)
-	end))
+	Server._heartBeatScriptConnection = Server._maid:AddTask(
+		RunService.Heartbeat:Connect(function(deltaTime)
+			-- Loop through all loaded profiles and perform physics exploit detections:
+			for _, playerProfile in pairs(Server.MonitoringPlayerProfiles) do
+				local player = playerProfile.Player
+				local primaryPart = player.Character.PrimaryPart
+
+				if not primaryPart then
+					continue
+				end
+
+				for detection, module in pairs(Server._detectionsInit.Physics) do
+					local requiredModule = require(module)
+
+					local detectionData = playerProfile.DetectionData[detection]
+					local physicsData = detectionData.PhysicsData
+					local lastCFrame = physicsData.LastCFrame
+
+					detectionData.LastStartDt += deltaTime
+
+					local lastStartDt = detectionData.LastStartDt
+					local shouldStartDetection = true
+
+					if lastStartDt >= requiredModule.StartInterval then
+						if lastCFrame ~= nil then
+							-- Safe check to avoid false positives:
+							if
+								Util.IsBasePartFalling(primaryPart, lastCFrame.Position)
+									and requiredModule == VerticalSpeed
+								or not Util.IsPlayerWalking(player, lastCFrame.Position)
+									and requiredModule == HorizontalSpeed
+							then
+								shouldStartDetection = false
+							end
+
+							if shouldStartDetection then
+								requiredModule.Start(detectionData, playerProfile, lastStartDt)
+							end
+						end
+
+						detectionData.LastStartDt = 0
+						physicsData.LastCFrame = primaryPart.CFrame
+					end
+				end
+			end
+		end)
+	)
+
+	return nil
 end
 
-function Server._cleanupDetections()
+function Server._stopHeartBeatUpdate()
+	Server._heartBeatScriptConnection:Disconnect()
+
+	return nil
+end
+
+function Server._cleanupNonPhysicsDetections()
 	for _, module in pairs(Server._detectionsInit.NonPhysics) do
 		require(module).Cleanup()
 	end
@@ -445,102 +521,75 @@ function Server._initDetections()
 	return nil
 end
 
-function Server._heartBeatUpdate(dt, verticalSpeed, horizontalSpeed)
-	-- Loop through all loaded profiles and perform physics exploit detections:
-	for _, playerProfile in pairs(Server.MonitoringPlayerProfiles) do
-		local player = playerProfile.Player
-		local primaryPart = player.Character.PrimaryPart
-
-		if not primaryPart then
-			continue
-		end
-
-		for detection, module in pairs(Server._detectionsInit.Physics) do
-			local requiredModule = require(module)
-
-			local detectionData = playerProfile.DetectionData[detection]
-			local physicsData = detectionData.PhysicsData
-			local lastCFrame = physicsData.LastCFrame
-
-			detectionData.LastStartDt += dt
-
-			local lastStartDt = detectionData.LastStartDt
-			local shouldStartDetection = true
-
-			if lastStartDt >= requiredModule.StartInterval then
-				if lastCFrame ~= nil then
-					-- Safe check to avoid false positives:
-					if
-						Util.IsBasePartFalling(primaryPart, lastCFrame.Position)
-							and module == verticalSpeed
-						or not Util.IsPlayerWalking(player, lastCFrame.Position)
-							and module == horizontalSpeed
-					then
-						shouldStartDetection = false
-					end
-
-					if shouldStartDetection then
-						requiredModule.Start(detectionData, playerProfile, lastStartDt)
-					end
-				end
-
-				detectionData.LastStartDt = 0
-				physicsData.LastCFrame = primaryPart.CFrame
-			end
-		end
-	end
-
-	return nil
-end
-
 function Server._initSafeChecksForPlayerProfile(playerProfile)
 	local player = playerProfile.Player
 	local primaryPart = player.Character.PrimaryPart
 	local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
 
-	playerProfile.Maid:AddTask(
+	playerProfile.ThresholdUpdateMaid:AddTask(
 		primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-			playerProfile:_updateAllDetectionPhysicsData("LastCFrame", primaryPart.CFrame)
+			playerProfile:UpdateAllDetectionPhysicsData("LastCFrame", primaryPart.CFrame)
 		end)
 	)
 
-	playerProfile.Maid:AddTask(
+	playerProfile.ThresholdUpdateMaid:AddTask(
 		primaryPart:GetPropertyChangedSignal("Parent"):Connect(function()
 			Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, player.CharacterAdded)
 		end)
 	)
 
-	playerProfile.Maid:AddTask(
+	playerProfile.ThresholdUpdateMaid:AddTask(
 		primaryPart:GetPropertyChangedSignal("AssemblyLinearVelocity"):Connect(function()
-			Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-				task.wait(primaryPart.AssemblyLinearVelocity.Magnitude / Workspace.Gravity)
-			end)
+			playerProfile:UpdateAllDetectionPhysicsData("LastCFrame", primaryPart.CFrame)
 		end)
 	)
 
-	playerProfile.Maid:AddTask(humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
-		if not humanoid.SeatPart then
-			return
-		end
+	local vehicleSeatMaxSpeedChangedConnection = nil
+	playerProfile.ThresholdUpdateMaid:AddTask(
+		humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
+			if not humanoid.SeatPart then
+				if
+					vehicleSeatMaxSpeedChangedConnection
+					and vehicleSeatMaxSpeedChangedConnection.Connected
+				then
+					vehicleSeatMaxSpeedChangedConnection:Disconnect()
+				end
 
-		-- Player is in seat, temporarily black list the player once they get out to
-		-- prevent horizontal / vertical speed false positive:
-		Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-			humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
-			task.wait(1)
+				return
+			end
+
+			if humanoid.SeatPart:IsA("VehicleSeat") then
+				local function UpdateThresholdsForVehicleSeatMaxSpeed()
+					PhysicsThreshold.ComputeMaxHorizontalSpeed(
+						playerProfile,
+						humanoid.SeatPart.MaxSpeed
+					)
+					PhysicsThreshold.ComputeMaxVerticalSpeed(
+						playerProfile,
+						humanoid.SeatPart.MaxSpeed
+					)
+				end
+
+				vehicleSeatMaxSpeedChangedConnection =
+					playerProfile.ThresholdUpdateMaid:AddTask(
+						humanoid.SeatPart
+							:GetPropertyChangedSignal("MaxSpeed")
+							:Connect(UpdateThresholdsForVehicleSeatMaxSpeed)
+					)
+
+				UpdateThresholdsForVehicleSeatMaxSpeed()
+			else
+				-- Player is in seat, temporarily black list the player once they get out to
+				-- prevent horizontal / vertical speed false positive:
+				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
+					humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
+					task.wait(
+						LocalConstants.AdditionalSeatOccupantChangeMonitorBlacklistInterval
+					)
+				end)
+			end
 		end)
-	end))
-
-	return nil
-end
-
-function Server._setPlayerPrimaryNetworkOwner(player)
-	local primaryPart = player.Character and player.Character.PrimaryPart
-	if not primaryPart then
-		return nil
-	end
-
-	Util.SetBasePartNetworkOwner(primaryPart, player)
+	)
 
 	return nil
 end
@@ -568,6 +617,13 @@ end
 function Server._initModules()
 	for _, child in ipairs(script:GetChildren()) do
 		Server[child.Name] = child
+
+		if child:IsA("ModuleScript") then
+			local requiredModule = require(child)
+			if requiredModule.Init ~= nil then
+				requiredModule.Init()
+			end
+		end
 	end
 
 	for _, child in ipairs(script.Parent:GetChildren()) do
