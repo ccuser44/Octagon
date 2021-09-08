@@ -119,8 +119,6 @@ PlayerProfile:IncrementPhysicsThreshold(physicsThreshold : string, thresholdIncr
 Increments the threshold for `physicsThreshold` by `thresholdIncrement`. Useful for managing player specific thresholds in different scenarios and can greatly reduce false positives if implemented correctly.
 
 ```lua
--- Assuming HorizontalSpeed detection is enabled:
-
 humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
 	profile:DecrementPhysicsThreshold("HorizontalSpeed", profile:GetPhysicsThresholdIncrement("HorizontalSpeed"))
 	profile:IncrementPhysicsThreshold("HorizontalSpeed", math.sqrt(humanoid.WalkSpeed ) * 2)
@@ -128,9 +126,7 @@ end)
 ```
 
 !!!warning
-    - This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
-
-    - Don't pass in a negative increment value.
+    Don't pass in a negative increment value.
 
 ### `PlayerProfile:DecrementPhysicsThreshold()`
 
@@ -149,9 +145,6 @@ Decrements the threshold for `physicsThreshold` by `thresholdDecrement`.
     print(PlayerProfile:GetPhysicsThresholdIncrement("VerticalSpeed")) --> 0
     ```
 
-!!!warning
-    This method will throw an error if the detection it self for `physicsThreshold` doesn't exist or isn't enabled.
-
 ### `PlayerProfile:GetPhysicsThresholdIncrement()`
 
 ```lua
@@ -159,9 +152,6 @@ PlayerProfile:GetPhysicsThresholdIncrement(physicsThreshold : string) --> number
 ```
 
 Returns the threshold increment for `physicsThreshold`.
-
-!!!note
-    This method will return `nil` if the detection for `physicsThreshold` doesn't exist or isn't enabled.
 
 ### `PlayerProfile:GetCurrentActivePhysicsDetectionFlag()`
 
