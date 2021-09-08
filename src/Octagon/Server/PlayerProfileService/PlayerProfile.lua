@@ -17,6 +17,7 @@
     PlayerProfile.PhysicsDetectionFlagsHistory : table
     PlayerProfile.PhysicsDetectionFlags : number
     
+	PlayerProfile:UpdateAllDetectionPhysicsData(key : string, value : any) --> nil []
 	PlayerProfile:IncrementPhysicsThreshold(physicsThreshold : string, thresholdIncrement : number) --> nil []
 	PlayerProfile:DecrementPhysicsThreshold(physicsThreshold : string, thresholdDecrement : number) --> nil []
     PlayerProfile:RegisterPhysicsDetectionFlag(detection : string, flag : string) --> nil []
@@ -40,10 +41,9 @@ local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local PlayerProfileService = require(script.Parent)
 local SharedConstants = require(Octagon.Shared.SharedConstants)
+local PhysicsThreshold = require(Octagon.Server.PhysicsThreshold)
 
 local LocalConstants = {
-	MaxServerFps = 60,
-	AdditionalVerticalSpeedLeeway = 12,
 	MinPhysicsThreshold = 0,
 	MaxPhysicsThreshold = math.huge,
 	MinPhysicsThresholdIncrement = 0,
@@ -79,6 +79,7 @@ function PlayerProfile.new(player)
 	local self = setmetatable({
 		Maid = Maid.new(),
 		DetectionMaid = Maid.new(),
+		ThresholdUpdateMaid = Maid.new(),
 		Player = player,
 		DetectionData = {},
 		PhysicsThresholds = {
@@ -109,6 +110,12 @@ end
 
 function PlayerProfile:Destroy()
 	local player = self.Player
+	local activePhysicsDetectionFlag = self:GetCurrentActivePhysicsDetectionFlag()
+
+	if activePhysicsDetectionFlag ~= nil then
+		self.DetectionData[activePhysicsDetectionFlag].FlagExpireDt = 0
+		self.OnPhysicsDetectionFlagExpire:Fire()
+	end
 
 	self:_cleanup()
 	self._isDestroyed = true
@@ -182,6 +189,9 @@ function PlayerProfile:IncrementPhysicsThreshold(physicsThreshold, thresholdIncr
 		)
 	)
 
+	assert(self.PhysicsThresholds[physicsThreshold] ~= nil, "Invalid physics threshold")
+	assert(thresholdIncrement > 0, "Invalid physics threshold increment")
+
 	self.PhysicsThresholds[physicsThreshold] += thresholdIncrement
 	self._physicsThresholdIncrements[physicsThreshold] += thresholdIncrement
 
@@ -209,7 +219,7 @@ function PlayerProfile:DecrementPhysicsThreshold(physicsThreshold, thresholdDecr
 		)
 	)
 
-	assert(self.PhysicsThresholds[physicsThreshold], "Invalid physics threshold")
+	assert(self.PhysicsThresholds[physicsThreshold] ~= nil, "Invalid physics threshold")
 
 	self.PhysicsThresholds[physicsThreshold] = math.clamp(
 		self.PhysicsThresholds[physicsThreshold] - thresholdDecrement,
@@ -219,8 +229,8 @@ function PlayerProfile:DecrementPhysicsThreshold(physicsThreshold, thresholdDecr
 
 	self._physicsThresholdIncrements[physicsThreshold] = math.clamp(
 		self._physicsThresholdIncrements[physicsThreshold] - thresholdDecrement,
-		LocalConstants.MinPhysicsThresholdIncrement,
-		LocalConstants.MaxPhysicsThresholdIncrement
+		LocalConstants.MinPhysicsThreshold,
+		LocalConstants.MaxPhysicsThreshold
 	)
 
 	return nil
@@ -323,13 +333,15 @@ end
 
 function PlayerProfile:_initPhysicsDetectionData(physicsDetections)
 	-- Setup detection data:
-	for detection, module in pairs(physicsDetections) do
+	for _, module in ipairs(physicsDetections) do
+		local detection = module.Name
+
 		local physicsData = {
 			LastCFrame = nil,
 			RaycastParams = nil,
 		}
 
-		if module == physicsDetections.NoClip then
+		if detection == "NoClip" then
 			-- Setup ray cast params for no clip detection:
 			local rayCastParams = RaycastParams.new()
 			rayCastParams.FilterDescendantsInstances = { self.Player.Character }
@@ -338,13 +350,12 @@ function PlayerProfile:_initPhysicsDetectionData(physicsDetections)
 		end
 
 		local detectionData = self.DetectionData[detection]
-		local lastStartDt = detectionData and detectionData.LastStartDt
-		local flagExpireDt = detectionData and detectionData.FlagExpireDt
+		local lastStartDt = detectionData and detectionData.LastStartDt or 0
+		local flagExpireDt = detectionData and detectionData.FlagExpireDt or 0
 
 		self.DetectionData[detection] = {
-			DetectionDataTag = true,
-			LastStartDt = lastStartDt or 0,
-			FlagExpireDt = flagExpireDt or 0,
+			LastStartDt = lastStartDt,
+			FlagExpireDt = flagExpireDt,
 			PhysicsData = physicsData,
 			PlayerDetectionExpireInterval = detection.PlayerDetectionExpireInterval,
 		}
@@ -353,7 +364,7 @@ function PlayerProfile:_initPhysicsDetectionData(physicsDetections)
 	return nil
 end
 
-function PlayerProfile:_updateAllDetectionPhysicsData(key, value)
+function PlayerProfile:UpdateAllDetectionPhysicsData(key, value)
 	for _, detectionData in pairs(self.DetectionData) do
 		detectionData.PhysicsData[key] = value
 	end
@@ -362,77 +373,50 @@ function PlayerProfile:_updateAllDetectionPhysicsData(key, value)
 end
 
 function PlayerProfile:_initPhysicsThresholds(physicsDetections)
+	local function ComputeJumpPowerFromJumpHeight(jumpHeight)
+		return math.sqrt(2 * Workspace.Gravity * jumpHeight)
+	end
+
 	local player = self.Player
 	local humanoid = player.Character.Humanoid
 
-	for detection, _ in pairs(physicsDetections) do
+	for _, module in ipairs(physicsDetections) do
+		local detection = module.Name
+
 		self._physicsThresholdIncrements[detection] = self._physicsThresholdIncrements[detection]
 			or 0
 		self.PhysicsThresholds[detection] = 0
 	end
 
-	if physicsDetections.VerticalSpeed ~= nil then
-		local VerticalSpeed = require(physicsDetections.VerticalSpeed)
+	PhysicsThreshold.ComputeMaxVerticalSpeed(
+		self,
+		humanoid.UseJumpPower and humanoid.JumpPower
+			or ComputeJumpPowerFromJumpHeight(humanoid.JumpHeight)
+	)
+	PhysicsThreshold.ComputeMaxHorizontalSpeed(self, humanoid.WalkSpeed)
 
-		local function ComputeMaxVerticalSpeed(jumpPower, thresholdIncrement)
-			local verticalSpeedLeeway = VerticalSpeed.Leeway / 100
+	self.ThresholdUpdateMaid:AddTask(
+		humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+			PhysicsThreshold.ComputeMaxVerticalSpeed(self, humanoid.JumpPower)
+		end)
+	)
 
-			return jumpPower
-				+ math.sqrt(jumpPower * VerticalSpeed.LeewayMultiplier) * VerticalSpeed.LeewayMultiplier
-				+ VerticalSpeed.LeewayMultiplier * (LocalConstants.MaxServerFps * verticalSpeedLeeway)
-				+ thresholdIncrement
-				+ LocalConstants.AdditionalVerticalSpeedLeeway
-		end
-
-		local function ComputeJumpPowerFromJumpHeight(jumpHeight)
-			return math.sqrt(2 * Workspace.Gravity * jumpHeight)
-		end
-
-		self.PhysicsThresholds.VerticalSpeed = ComputeMaxVerticalSpeed(
-			humanoid.UseJumpPower and humanoid.JumpPower
-				or ComputeJumpPowerFromJumpHeight(humanoid.JumpHeight),
-			self._physicsThresholdIncrements.VerticalSpeed
-		)
-
-		self.Maid:AddTask(humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-			self.PhysicsThresholds.VerticalSpeed = ComputeMaxVerticalSpeed(
-				humanoid.JumpPower,
-				self._physicsThresholdIncrements.VerticalSpeed
+	self.ThresholdUpdateMaid:AddTask(
+		humanoid:GetPropertyChangedSignal("JumpHeight"):Connect(function()
+			PhysicsThreshold.ComputeMaxVerticalSpeed(
+				self,
+				ComputeJumpPowerFromJumpHeight(humanoid.JumpHeight)
 			)
-		end))
+		end)
+	)
 
-		self.Maid:AddTask(humanoid:GetPropertyChangedSignal("JumpHeight"):Connect(function()
-			self.PhysicsThresholds.VerticalSpeed = ComputeMaxVerticalSpeed(
-				ComputeJumpPowerFromJumpHeight(humanoid.JumpHeight),
-				self._physicsThresholdIncrements.VerticalSpeed
-			)
-		end))
-	end
+	self.ThresholdUpdateMaid:AddTask(
+		humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+			PhysicsThreshold.ComputeMaxHorizontalSpeed(self, humanoid.WalkSpeed)
+		end)
+	)
 
-	if physicsDetections.HorizontalSpeed ~= nil then
-		local HorizontalSpeed = require(physicsDetections.HorizontalSpeed)
-
-		local function ComputeMaxHorizontalSpeed(horizontalSpeed, thresholdIncrement)
-			local horizontalSpeedLeeway = HorizontalSpeed.Leeway / 100
-
-			return horizontalSpeed
-				+ math.sqrt(horizontalSpeed * HorizontalSpeed.LeewayMultiplier) * HorizontalSpeed.LeewayMultiplier
-				+ HorizontalSpeed.LeewayMultiplier * (LocalConstants.MaxServerFps * horizontalSpeedLeeway)
-				+ thresholdIncrement
-		end
-
-		self.PhysicsThresholds.HorizontalSpeed = ComputeMaxHorizontalSpeed(
-			humanoid.WalkSpeed,
-			self._physicsThresholdIncrements.HorizontalSpeed
-		)
-
-		self.Maid:AddTask(humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-			self.PhysicsThresholds.HorizontalSpeed = ComputeMaxHorizontalSpeed(
-				humanoid.WalkSpeed,
-				self._physicsThresholdIncrements.HorizontalSpeed
-			)
-		end))
-	end
+	return nil
 end
 
 return PlayerProfile
