@@ -34,7 +34,7 @@ local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 
-function VerticalSpeed.Start(detectionData, playerProfile, dt)
+function VerticalSpeed.Start(detectionData, playerProfile, deltaTime)
 	local character = playerProfile.Player.Character
 	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 
@@ -42,13 +42,14 @@ function VerticalSpeed.Start(detectionData, playerProfile, dt)
 	local averageVerticalSpeed = VerticalSpeed._calculateVerticalSpeed(
 		character.PrimaryPart.Position,
 		lastCFrame.Position,
-		dt
+		deltaTime
 	)
-
+ 
 	if averageVerticalSpeed > playerProfile.PhysicsThresholds.VerticalSpeed then
 		-- Common case: the event for listening to the humanoid's seat part changing was deferred
-		-- and the player was black listed while this detection ran:
-		if (humanoid and humanoid.SeatPart) ~= nil then
+		-- and the player was temporarily black listed from being monitored
+		-- while this detection ran:
+		if humanoid and humanoid.SeatPart and humanoid.SeatPart:IsA("Seat") then
 			return nil
 		end
 

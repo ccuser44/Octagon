@@ -34,14 +34,14 @@ local Maid = require(Octagon.Shared.Maid)
 local InitMaidFor = require(Octagon.Shared.InitMaidFor)
 local DestroyAllMaids = require(Octagon.Shared.DestroyAllMaids)
 
-function HorizontalSpeed.Start(detectionData, playerProfile, dt)
+function HorizontalSpeed.Start(detectionData, playerProfile, deltaTime)
 	-- Calculate average horizontal speed per mutliple frames and compare it
 	-- to the maximum possible and flag the player accordingly:
 	local lastCFrame = detectionData.PhysicsData.LastCFrame
 	local averageHorizontalSpeed = HorizontalSpeed._calculateAverageSpeed(
 		playerProfile.Player.Character.PrimaryPart.Position,
 		lastCFrame.Position,
-		dt
+		deltaTime
 	)
 
 	if averageHorizontalSpeed > playerProfile.PhysicsThresholds.HorizontalSpeed then
