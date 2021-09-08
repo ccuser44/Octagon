@@ -47,7 +47,6 @@ local DestroyAllMaids = require(script.Parent.Shared.DestroyAllMaids)
 local PlayerUtil = require(script.Parent.Shared.Util.PlayerUtil)
 local InitMaidFor = require(script.Parent.Shared.InitMaidFor)
 local Util = require(script.Parent.Shared.Util)
-local PhysicsThreshold = require(script.PhysicsThreshold)
 local VerticalSpeed = require(script.Detections.Physics.VerticalSpeed)
 local HorizontalSpeed = require(script.Detections.Physics.HorizontalSpeed)
 
@@ -544,50 +543,18 @@ function Server._initSafeChecksForPlayerProfile(playerProfile)
 		end)
 	)
 
-	local vehicleSeatMaxSpeedChangedConnection = nil
 	playerProfile.ThresholdUpdateMaid:AddTask(
 		humanoid:GetPropertyChangedSignal("SeatPart"):Connect(function()
 			if not humanoid.SeatPart then
-				if
-					vehicleSeatMaxSpeedChangedConnection
-					and vehicleSeatMaxSpeedChangedConnection.Connected
-				then
-					vehicleSeatMaxSpeedChangedConnection:Disconnect()
-				end
-
 				return
 			end
 
-			if humanoid.SeatPart:IsA("VehicleSeat") then
-				local function UpdateThresholdsForVehicleSeatMaxSpeed()
-					PhysicsThreshold.ComputeMaxHorizontalSpeed(
-						playerProfile,
-						humanoid.SeatPart.MaxSpeed
-					)
-					PhysicsThreshold.ComputeMaxVerticalSpeed(
-						playerProfile,
-						humanoid.SeatPart.MaxSpeed
-					)
-				end
-
-				vehicleSeatMaxSpeedChangedConnection =
-					playerProfile.ThresholdUpdateMaid:AddTask(
-						humanoid.SeatPart
-							:GetPropertyChangedSignal("MaxSpeed")
-							:Connect(UpdateThresholdsForVehicleSeatMaxSpeed)
-					)
-
-				UpdateThresholdsForVehicleSeatMaxSpeed()
-			else
-				-- Player is in seat, temporarily black list the player once they get out to
-				-- prevent horizontal / vertical speed false positive:
-				Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
-					humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
-					task.wait(
-						LocalConstants.AdditionalSeatOccupantChangeMonitorBlacklistInterval
-					)
-				end)
-			end
+			-- Player is in seat, temporarily black list the player once they get out to
+			-- prevent horizontal / vertical speed false positive:
+			Server.TemporarilyBlacklistPlayerFromBeingMonitored(player, function()
+				humanoid.SeatPart:GetPropertyChangedSignal("Occupant"):Wait()
+				task.wait(LocalConstants.AdditionalSeatOccupantChangeMonitorBlacklistInterval)
+			end)
 		end)
 	)
 
