@@ -3,16 +3,18 @@
 -- August 12, 2021
 
 --[[
-    Client.OnPlayerFling : Signal ()
     Client.OnPlayerHardGroundLand : Signal ()
 
     Client.Start() --> nil []
     Client.Stop() --> nil []
+	Client.AllowPlayerBouncing() --> nil []
+	Client.PreventPlayerBouncing() --> nil []
 	Client.IsStarted() --> boolean [IsStarted]
 	Client.IsStopped() --> boolean [IsStopped]
 ]]
 
 local Client = {
+	_allowLocalPlayerBouncing = false,
 	_isStarted = false,
 	_isStopped = false,
 	_isInit = false,
@@ -61,6 +63,18 @@ function Client.Start()
 	return nil
 end
 
+function Client.AllowPlayerBouncing()
+	Client._allowLocalPlayerBouncing = true
+
+	return nil
+end
+
+function Client.PreventPlayerBouncing()
+	Client._allowLocalPlayerBouncing = false
+
+	return nil
+end
+
 function Client.Stop()
 	assert(not Client.IsStopped(), "Can't stop Octagon as Octagon is already stopped")
 	assert(Client.IsStarted(), "Can't stop Octagon as Octagon isn't started")
@@ -97,9 +111,7 @@ function Client._trackHumanoidState(character)
 
 	Client._humanoidStateTrackerMaid:AddTask(
 		humanoid.StateChanged:Connect(function(_, newState)
-			if newState == Enum.HumanoidStateType.Ragdoll then
-				Client.OnPlayerFling:Fire()
-			elseif
+			if
 				newState == Enum.HumanoidStateType.Landed
 				and localPlayer.Character.PrimaryPart ~= nil
 			then
@@ -138,13 +150,12 @@ function Client._initSignals()
 
 	InitMaidFor(Client, Client._maid, Signal.IsSignal)
 
-	Client.OnPlayerFling:Connect(function()
-		-- Zero out their velocity to prevent them from flinging:
-		localPlayer.Character.PrimaryPart.AssemblyLinearVelocity *= SharedConstants.Vectors.Default
-	end)
-
 	Client.OnPlayerHardGroundLand:Connect(function()
-		-- Zero out their velocity to prevent them from flinging:
+		if Client._allowLocalPlayerBouncing then
+			return
+		end
+
+		-- Zero out their velocity on the Y axis to prevent them from bouncing high up:
 		localPlayer.Character.PrimaryPart.AssemblyLinearVelocity *= SharedConstants.Vectors.XZ
 	end)
 
