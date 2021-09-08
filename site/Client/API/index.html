@@ -511,13 +511,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#octagononplayerfling" class="md-nav__link">
-    Octagon.OnPlayerFling
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#octagononplayerhardgroundland" class="md-nav__link">
     Octagon.OnPlayerHardGroundLand
   </a>
@@ -548,6 +541,20 @@
           <li class="md-nav__item">
   <a href="#octagonstop" class="md-nav__link">
     Octagon.Stop()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#octagonallowplayerbouncing" class="md-nav__link">
+    Octagon.AllowPlayerBouncing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#octagonpreventbouncing" class="md-nav__link">
+    Octagon.PreventBouncing()
   </a>
   
 </li>
@@ -605,13 +612,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#octagononplayerfling" class="md-nav__link">
-    Octagon.OnPlayerFling
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#octagononplayerhardgroundland" class="md-nav__link">
     Octagon.OnPlayerHardGroundLand
   </a>
@@ -646,6 +646,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#octagonallowplayerbouncing" class="md-nav__link">
+    Octagon.AllowPlayerBouncing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#octagonpreventbouncing" class="md-nav__link">
+    Octagon.PreventBouncing()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -674,14 +688,15 @@
 <p>Never edit the source of Octagon or any of it's modules. Octagon is a module not supposed to have it's source code interrupted.</p>
 </div>
 <h2 id="octagon">Octagon</h2>
-<h3 id="octagononplayerfling"><code>Octagon.OnPlayerFling</code></h3>
-<div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">OnPlayerFling</span> <span class="p">:</span> <span class="n">Signal</span> <span class="p">()</span>
-</code></pre></div>
-<p>A signal which is fired whenever the player is flinged (when hit by a fast moving object). </p>
 <h3 id="octagononplayerhardgroundland"><code>Octagon.OnPlayerHardGroundLand</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">OnPlayerHardGroundLand</span> <span class="p">:</span> <span class="n">Signal</span> <span class="p">()</span>
 </code></pre></div>
 <p>A signal which is fired whenever the player lands on a ground in a "hard way" such that they are likely to bounce back. </p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Octagon by default will stop the player from bouncing high up. It is recommended not to
+alter that behavoiur through this signal.</p>
+</div>
 <h3 id="octagonstart"><code>Octagon.Start()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">Start</span><span class="p">()</span> <span class="c1">--&gt; nil []</span>
 </code></pre></div>
@@ -698,6 +713,14 @@
 <div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">Stop</span><span class="p">()</span> <span class="c1">--&gt; nil []</span>
 </code></pre></div>
 <p>Cleans up all maids in use.</p>
+<h3 id="octagonallowplayerbouncing"><code>Octagon.AllowPlayerBouncing()</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">AllowPlayerBouncing</span><span class="p">()</span> <span class="c1">--&gt; nil []</span>
+</code></pre></div>
+<p>Allows the local player to bounce high up after falling. By default, Octagon will not allow the player to bounce high up in the air after jumping.</p>
+<h3 id="octagonpreventbouncing"><code>Octagon.PreventBouncing()</code></h3>
+<div class="highlight"><pre><span></span><code><span class="n">Octagon</span><span class="p">.</span><span class="n">PreventBouncing</span><span class="p">()</span> <span class="c1">--&gt; nil []</span>
+</code></pre></div>
+<p>Stops the local player from bouncing high up after falling.</p>
                 
               
               
