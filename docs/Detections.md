@@ -27,8 +27,7 @@ This detection by default, checks if the player (who is being monitored) is walk
     - The server can safely increase the velocity of the player's character's primary part, or
     simply teleport the player without this detection flagging the player.
 
-    - Players who're sitting on Seats (not to be confused with VehicleSeats) will be not be monitored. However, players who're sitting on VehicleSeats will be monitored by this detection.
-
+    - Players who're sitting on seats will be not be monitored to prevent false positives.
 #### **VerticalSpeed**
 
 This detection works exactly like the above one, but for high vertical speed.
