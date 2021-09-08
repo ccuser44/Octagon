@@ -846,23 +846,14 @@ Octagon and the developer to work with. </p>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">IncrementPhysicsThreshold</span><span class="p">(</span><span class="n">physicsThreshold</span> <span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">thresholdIncrement</span> <span class="p">:</span> <span class="n">number</span><span class="p">)</span> <span class="c1">--&gt; nil []</span>
 </code></pre></div>
 <p>Increments the threshold for <code>physicsThreshold</code> by <code>thresholdIncrement</code>. Useful for managing player specific thresholds in different scenarios and can greatly reduce false positives if implemented correctly.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- Assuming HorizontalSpeed detection is enabled:</span>
-
-<span class="n">humanoid</span><span class="p">:</span><span class="n">GetPropertyChangedSignal</span><span class="p">(</span><span class="s2">&quot;WalkSpeed&quot;</span><span class="p">):</span><span class="n">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">humanoid</span><span class="p">:</span><span class="n">GetPropertyChangedSignal</span><span class="p">(</span><span class="s2">&quot;WalkSpeed&quot;</span><span class="p">):</span><span class="n">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
     <span class="n">profile</span><span class="p">:</span><span class="n">DecrementPhysicsThreshold</span><span class="p">(</span><span class="s2">&quot;HorizontalSpeed&quot;</span><span class="p">,</span> <span class="n">profile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="s2">&quot;HorizontalSpeed&quot;</span><span class="p">))</span>
     <span class="n">profile</span><span class="p">:</span><span class="n">IncrementPhysicsThreshold</span><span class="p">(</span><span class="s2">&quot;HorizontalSpeed&quot;</span><span class="p">,</span> <span class="nb">math.sqrt</span><span class="p">(</span><span class="n">humanoid</span><span class="p">.</span><span class="n">WalkSpeed</span> <span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<ul>
-<li>
-<p>This method will throw an error if the detection it self for <code>physicsThreshold</code> doesn't exist or isn't enabled.</p>
-</li>
-<li>
 <p>Don't pass in a negative increment value.</p>
-</li>
-</ul>
 </div>
 <h3 id="playerprofiledecrementphysicsthreshold"><code>PlayerProfile:DecrementPhysicsThreshold()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">DecrementPhysicsThreshold</span><span class="p">(</span><span class="n">physicsThreshold</span> <span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">thresholdDecrement</span> <span class="p">:</span> <span class="n">number</span><span class="p">)</span> <span class="c1">--&gt; nil []</span>
@@ -876,18 +867,10 @@ Octagon and the developer to work with. </p>
 <span class="nb">print</span><span class="p">(</span><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="s2">&quot;VerticalSpeed&quot;</span><span class="p">))</span> <span class="c1">--&gt; 0</span>
 </code></pre></div>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>This method will throw an error if the detection it self for <code>physicsThreshold</code> doesn't exist or isn't enabled.</p>
-</div>
 <h3 id="playerprofilegetphysicsthresholdincrement"><code>PlayerProfile:GetPhysicsThresholdIncrement()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetPhysicsThresholdIncrement</span><span class="p">(</span><span class="n">physicsThreshold</span> <span class="p">:</span> <span class="n">string</span><span class="p">)</span> <span class="c1">--&gt; number [thresholdIncrement]</span>
 </code></pre></div>
 <p>Returns the threshold increment for <code>physicsThreshold</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This method will return <code>nil</code> if the detection for <code>physicsThreshold</code> doesn't exist or isn't enabled.</p>
-</div>
 <h3 id="playerprofilegetcurrentactivephysicsdetectionflag"><code>PlayerProfile:GetCurrentActivePhysicsDetectionFlag()</code></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PlayerProfile</span><span class="p">:</span><span class="n">GetCurrentActivePhysicsDetectionFlag</span><span class="p">()</span> <span class="c1">--&gt; string | nil [physicsDetectionFlag]</span>
 </code></pre></div>
