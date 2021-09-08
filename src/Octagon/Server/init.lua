@@ -55,18 +55,6 @@ local LocalConstants = {
 	AdditionalSeatOccupantChangeMonitorBlacklistInterval = 1,
 }
 
-setmetatable(Server.MonitoringPlayerProfiles, {
-	__newindex = function(self, key, value)
-		rawset(self, key, value)
-
-		if not Server._isHeartBeatUpdateRunning() then
-			Server._startHeartBeatUpdate()
-		end
-
-		return nil
-	end,
-})
-
 function Server.AreMonitoringPlayerProfilesLeft()
 	return next(Server.MonitoringPlayerProfiles) ~= nil
 end
@@ -231,6 +219,18 @@ end
 function Server.Start()
 	assert(not Server.IsStopped(), "Can't start Octagon as Octagon is stopped")
 	assert(not Server.IsStarted(), "Can't start Octagon as Octagon is already started")
+
+	setmetatable(Server.MonitoringPlayerProfiles, {
+		__newindex = function(self, key, value)
+			rawset(self, key, value)
+
+			if not Server._isHeartBeatUpdateRunning() then
+				Server._startHeartBeatUpdate()
+			end
+
+			return nil
+		end,
+	})
 
 	Server._isStarted = true
 	Server._initDetections()
