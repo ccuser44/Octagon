@@ -14,19 +14,21 @@ local PlayerProfileService = require(Octagon.PlayerProfileService)
 Octagon.Start()
 
 local function PlayerAdded(player)
-    local profile = PlayerProfileService.GetPlayerProfile(player)  
+    task.defer(function()
+        local profile = PlayerProfileService.GetPlayerProfile(player)  
 
-    -- Safe check as the player's profile will not exist if the player
-    -- isn't being monitored by the anti exploit:
+        -- Safe check as the player's profile will not exist if the player
+        -- isn't being monitored by the anti exploit:
 
-    if not profile then
-        return nil
-    end
+        if not profile then
+            return nil
+        end
 
-    -- Listen to new physics detection flags:
-    profile.OnPhysicsDetectionFlag:Connect(function(flag)
-        warn(("%s got flagged for %s"):format(player.Name, flag))
-    end)
+        -- Listen to new physics detection flags:
+        profile.OnPhysicsDetectionFlag:Connect(function(flag)
+            warn(("%s got flagged for %s"):format(player.Name, flag))
+        end)
+    end)
 
     return nil
 end
