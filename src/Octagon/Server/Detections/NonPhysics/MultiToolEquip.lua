@@ -122,8 +122,9 @@ function MultiToolEquip._initSignals()
 		for _, tool in pairs(playerEquippedToolsData.Tools) do
 			-- Handle edge case where the tool is immediately destroyed after being parented:
 			if tool.Parent == player.Character then
-				task.wait()
-				tool.Parent = player.Backpack
+				task.defer(function()
+					tool.Parent = player.Backpack
+				end)
 			end
 		end
 
